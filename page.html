@@ -3,1183 +3,1651 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NAVER 연수원 데이터 관리</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>NAVER CONNECT ONE 운영현황</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+// ===== 별점 렌더링 =====
+(function renderStars() {
+  const score = 4.82;
+  const container = document.getElementById('starDisplay');
+  if (!container) return;
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const fill = Math.min(1, Math.max(0, score - (i - 1)));
+    if (fill >= 1) {
+      // 꽉찬 별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"/></svg>`;
+    } else if (fill > 0) {
+      // 반별 (clip path로 정확히)
+      const pct = Math.round(fill * 100);
+      html += `<svg width="22" height="22" viewBox="0 0 24 24">
+        <defs><clipPath id="half${i}"><rect x="0" y="0" width="${pct * 0.24}" height="24"/></clipPath></defs>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" clip-path="url(#half${i})"/>
+      </svg>`;
+    } else {
+      // 빈별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/></svg>`;
+    }
+  }
+  container.innerHTML = html;
+})();
+
+
+
+</script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/nanum-gothic@1.0.2/nanum-gothic.min.css" rel="stylesheet">
+<style>@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareR.woff') format('woff');font-weight:400;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareB.woff') format('woff');font-weight:700;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareEB.woff') format('woff');font-weight:800 900;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareL.woff') format('woff');font-weight:300;font-style:normal;}</style>
 <style>
 :root {
-  --bg: #f4f6f9;
+  --green: #03C75A;
+  --green2: #00983A;
+  --green3: #edfff4;
+  --green4: #c8f0d8;
+  --dark: #1D1D1B;
+  --gray1: #f5f6f7;
+  --gray2: #eaebec;
+  --gray3: #c4c5c7;
+  --gray4: #8c8d8f;
+  --gray5: #4a4b4d;
   --white: #ffffff;
-  --surface: #ffffff;
-  --surface2: #f8fafc;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --accent: #03C75A;
-  --accent-light: #edfff4;
-  --accent-hover: #00983A;
-  --green: #00983A;
-  --green-light: #edfff4;
-  --red: #dc2626;
-  --red-light: #fef2f2;
-  --amber: #d97706;
-  --amber-light: #fffbeb;
-  --purple: #7c3aed;
-  --purple-light: #f5f3ff;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --blue: #4e7fff;
+  --blue2: #7ba7ff;
+  --blue-light: #eef3ff;
+  --orange: #ff6b35;
+  --orange-light: #fff0eb;
+  --text: #1D1D1B;
+  --text2: #5a5b5d;
+  --text3: #9a9b9d;
+  --border: #e4e5e7;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
   --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-  --radius: 10px;
+  --r: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--text);font-size:13px;line-height:1.5;}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  background:var(--white);
+  border-bottom:2px solid var(--green);
+  padding:0 28px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.n-mark{
+  width:28px;height:28px;background:var(--green);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.n-mark svg{width:16px;height:16px;}
+.topbar-name{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--dark);}
+.topbar-name span{color:var(--green);}
+.topbar-nav{display:flex;gap:2px;}
+.nav-tab{
+  padding:6px 18px;border:none;background:none;cursor:pointer;
+  font-family:'NanumSquare',sans-serif;font-size:13px;font-weight:600;
+  color:var(--text3);border-radius:6px;transition:all .15s;
+}
+.nav-tab.active{background:var(--green3);color:var(--green2);}
+.nav-tab:hover:not(.active){background:var(--gray1);color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.year-badge{
+  padding:4px 12px;background:var(--gray1);border:1px solid var(--border);
+  border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;
+}
+.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'JetBrains Mono',monospace;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ===== PAGES ===== */
+.page{display:none;padding:20px 28px 32px;}
+.page.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== SECTION TITLE ===== */
+.section-head{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.section-bar{width:3px;height:18px;background:var(--green);border-radius:2px;}
+.section-title{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+.section-sub{font-size:11px;color:var(--text3);margin-left:auto;font-family:'JetBrains Mono',monospace;}
+
+/* ===== GRID ===== */
+.grid{display:grid;gap:12px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g13{grid-template-columns:1fr 3fr;}
+.g31{grid-template-columns:3fr 1fr;}
+.span2{grid-column:span 2;}
+.span3{grid-column:span 3;}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;box-shadow:var(--shadow);
+}
+.card-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
+.card-sub{font-size:10px;color:var(--text3);margin-bottom:14px;}
+
+/* ===== KPI CARDS ===== */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.kpi-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);
+}
+.kpi-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;}
+.kpi-main{display:flex;align-items:baseline;gap:6px;}
+.kpi-val{font-size:32px;font-weight:900;color:var(--green);letter-spacing:-1.5px;line-height:1;}
+.kpi-unit{font-size:14px;font-weight:700;color:var(--text2);}
+.kpi-divider{width:100%;height:1px;background:var(--gray2);margin:12px 0;}
+.kpi-avg-label{font-size:11px;color:var(--text3);}
+.kpi-avg-val{font-size:13px;font-weight:700;color:var(--text);margin-left:auto;}
+.kpi-avg-row{display:flex;align-items:center;}
+
+/* ===== DONUT WRAPPER ===== */
+.donut-wrap{position:relative;width:150px;height:150px;margin:0 auto;}
+.donut-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;
+}
+.donut-center-val{font-size:20px;font-weight:900;color:var(--dark);}
+.donut-center-sub{font-size:10px;color:var(--text3);}
+
+/* ===== LEGEND ===== */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ===== BAR CHART HORIZONTAL ===== */
+.hbar-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+.hbar-row{display:flex;align-items:center;gap:10px;}
+.hbar-label{font-size:12px;color:var(--text2);width:90px;text-align:right;flex-shrink:0;}
+.hbar-track{flex:1;background:var(--gray2);border-radius:4px;height:20px;position:relative;overflow:visible;}
+.hbar-fill{height:100%;border-radius:4px;transition:width .6s ease;display:flex;align-items:center;padding-left:8px;}
+.hbar-fill span{font-size:11px;font-weight:700;color:var(--white);}
+.hbar-total{font-size:11px;color:var(--text3);width:30px;text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+
+/* ===== SATISFACTION PAGE ===== */
+.sat-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.dark-card{
+  background:#1e2535;border:1px solid #2d3548;border-radius:var(--r);
+  padding:18px;color:#e8eaf0;
+}
+.dark-card .card-title{color:#8892a4;}
+.dark-card .donut-center-val{color:var(--white);}
+.dark-card .legend-item{color:#8892a4;}
+
+/* ===== ROOM PAGE ===== */
+.floor-section{margin-bottom:20px;}
+.floor-head{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--white);border:1px solid var(--border);border-radius:8px 8px 0 0;
+  border-bottom:2px solid var(--green);
+}
+.floor-label{font-size:13px;font-weight:800;color:var(--dark);}
+.floor-tag{
+  padding:2px 10px;background:var(--green3);border-radius:20px;
+  font-size:11px;color:var(--green2);font-weight:600;
+}
+.floor-tag.vip{background:#fff8e6;color:#c47a00;}
+.floor-stats{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text3);}
+.floor-stats span{font-weight:600;color:var(--text2);}
+
+.room-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));
+  gap:6px;padding:10px;
+  background:var(--white);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 8px 8px;
+}
+.room-cell{
+  border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;
+  transition:all .15s;position:relative;border:1.5px solid transparent;
+  min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;
+}
+.room-cell:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.room-cell.available{background:#f0fdf6;border-color:#a7e8c0;color:var(--green2);}
+.room-cell.assigned{background:#eef3ff;border-color:#b3c8ff;color:var(--blue);}
+.room-cell.unavailable{background:var(--gray2);border-color:var(--gray3);color:var(--text3);cursor:not-allowed;opacity:.6;}
+.room-cell.unavailable:hover{transform:none;box-shadow:none;}
+.room-cell.irregular{background:#fff8e6;border-color:#ffd97a;color:#c47a00;cursor:not-allowed;opacity:.7;}
+.room-num{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;}
+.room-status{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.room-person{font-size:10px;font-weight:600;line-height:1.3;text-align:center;color:var(--blue);}
+.room-org{font-size:9px;color:var(--blue2);}
+.vip-badge{
+  position:absolute;top:4px;right:4px;
+  width:14px;height:14px;background:#f59e0b;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;color:white;font-weight:700;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ===== ROOM LEGEND ===== */
+.room-legend{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.room-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.room-legend-box{width:14px;height:14px;border-radius:4px;border:1.5px solid;}
 
-body {
-  font-family: 'Noto Sans KR', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
+/* ===== MODAL ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;
 }
-
-/* Layout */
-.app { display: flex; min-height: 100vh; }
-
-/* Sidebar */
-.sidebar {
-  width: 220px;
-  background: #0a1a0f;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  z-index: 50;
+.modal-overlay.open{display:flex;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--white);border-radius:14px;width:360px;
+  box-shadow:0 24px 60px rgba(0,0,0,.18);animation:slideUp .2s ease;
 }
-
-.sidebar-logo {
-  padding: 24px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
 }
-
-.logo-mark {
-  width: 32px; height: 32px;
-  background: var(--accent);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; margin-bottom: 10px;
+.modal-title{font-size:14px;font-weight:800;}
+.modal-close{
+  width:28px;height:28px;border:none;background:var(--gray1);border-radius:6px;
+  cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;
 }
-
-.logo-name { font-size: 13px; font-weight: 700; color: #fff; }
-.logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
-
-.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-
-.nav-section-label {
-  font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.25);
-  text-transform: uppercase; letter-spacing: 1px;
-  padding: 8px 8px 4px;
-  margin-top: 8px;
+.modal-body{padding:18px 20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.3px;}
+.form-input{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:'NanumSquare',sans-serif;color:var(--text);outline:none;
+  transition:border-color .15s;background:var(--white);
 }
-
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 7px;
-  cursor: pointer; transition: all 0.15s;
-  color: rgba(255,255,255,0.5);
-  font-size: 13px; font-weight: 500;
-  border: none; background: none; width: 100%; text-align: left;
+.form-input:focus{border-color:var(--green);}
+.room-info-box{
+  background:var(--gray1);border-radius:8px;padding:12px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
 }
+.room-info-num{font-size:22px;font-weight:900;color:var(--dark);font-family:'JetBrains Mono',monospace;}
+.room-info-tag{font-size:11px;color:var(--text3);}
 
-.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
-.nav-item.active { background: #03C75A; color: #fff; }
-.nav-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-
-.sidebar-footer {
-  padding: 16px 12px;
-  border-top: 1px solid rgba(255,255,255,0.07);
+.btn{
+  padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;border:none;font-family:'NanumSquare',sans-serif;transition:all .15s;
 }
+.btn-primary{background:var(--green);color:white;}
+.btn-primary:hover{background:var(--green2);}
+.btn-outline{background:white;border:1.5px solid var(--border);color:var(--text2);}
+.btn-outline:hover{border-color:var(--green);color:var(--green);}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;}
+.btn-danger:hover{background:#fecaca;}
 
-.back-btn {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: 7px;
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.4);
-  font-size: 12px; cursor: pointer;
-  border: none; width: 100%; text-align: left;
-  transition: all 0.15s;
+/* ===== FLOOR SUMMARY ===== */
+.floor-summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.floor-sum-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px 12px;text-align:center;box-shadow:var(--shadow);
 }
-
-.back-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
-
-/* Main */
-.main {
-  margin-left: 220px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Topbar */
-.topbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 28px;
-  height: 60px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 40;
-  box-shadow: var(--shadow);
-}
-
-.topbar-left { display: flex; flex-direction: column; }
-.topbar-title { font-size: 15px; font-weight: 700; }
-.topbar-breadcrumb { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  border: none; transition: all 0.15s;
-  font-family: 'Noto Sans KR', sans-serif;
-  white-space: nowrap;
-}
-
-.btn-primary { background: #03C75A; color: #fff; }
-.btn-primary:hover { background: #00983A; }
-.btn-success { background: var(--green); color: #fff; }
-.btn-success:hover { background: #047857; }
-.btn-danger { background: var(--red); color: #fff; }
-.btn-danger:hover { background: #b91c1c; }
-.btn-outline {
-  background: var(--white); color: var(--text);
-  border: 1px solid var(--border2);
-}
-.btn-outline:hover { background: var(--surface2); border-color: #03C75A; color: var(--accent); }
-.btn-ghost { background: transparent; color: var(--text-muted); padding: 6px 10px; }
-.btn-ghost:hover { background: var(--surface2); color: var(--text); }
-
-.btn-icon {
-  width: 32px; height: 32px; padding: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 7px; border: 1px solid var(--border);
-  background: var(--white); cursor: pointer;
-  font-size: 14px; color: var(--text-muted);
-  transition: all 0.15s;
-}
-
-.btn-icon:hover { border-color: #03C75A; color: var(--accent); background: var(--accent-light); }
-.btn-icon.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
-
-/* Content */
-.content { padding: 24px 28px; flex: 1; }
-
-/* Page sections */
-.page { display: none; }
-.page.active { display: block; animation: fadeUp 0.25s ease; }
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Stats bar */
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  box-shadow: var(--shadow);
-}
-
-.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
-.stat-value.blue { color: #03C75A; }
-.stat-value.green { color: var(--green); }
-.stat-value.amber { color: var(--amber); }
-.stat-value.red { color: var(--red); }
-
-/* Toolbar */
-.toolbar {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px; gap: 12px;
-}
-
-.toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; }
-
-.search-box {
-  display: flex; align-items: center;
-  background: var(--white); border: 1px solid var(--border);
-  border-radius: 8px; padding: 0 12px;
-  gap: 8px; flex: 1; max-width: 320px;
-  box-shadow: var(--shadow);
-}
-
-.search-box input {
-  border: none; outline: none; background: none;
-  font-size: 13px; color: var(--text);
-  padding: 9px 0; flex: 1;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.search-box input::placeholder { color: var(--text-dim); }
-
-.filter-select {
-  padding: 8px 12px; border: 1px solid var(--border);
-  border-radius: 8px; font-size: 13px;
-  background: var(--white); color: var(--text);
-  cursor: pointer; outline: none;
-  font-family: 'Noto Sans KR', sans-serif;
-  box-shadow: var(--shadow);
-}
-
-/* Table */
-.table-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.table-header {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-
-.table-header-title { font-size: 13px; font-weight: 700; }
-.table-count { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-
-table { width: 100%; border-collapse: collapse; }
-
-thead th {
-  padding: 10px 14px;
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.5px; color: var(--text-muted);
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  white-space: nowrap;
-}
-
-tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px; color: var(--text);
-  vertical-align: middle;
-}
-
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: #fafbff; }
-
-/* Badges */
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 3px 9px; border-radius: 5px;
-  font-size: 11px; font-weight: 600;
-}
-
-.badge-blue { background: #edfff4; color: #03C75A; }
-.badge-green { background: var(--green-light); color: var(--green); }
-.badge-amber { background: var(--amber-light); color: var(--amber); }
-.badge-red { background: var(--red-light); color: var(--red); }
-.badge-gray { background: #f1f5f9; color: var(--text-muted); }
-.badge-purple { background: var(--purple-light); color: var(--purple); }
-
-/* Actions cell */
-.actions { display: flex; gap: 6px; align-items: center; }
-
-/* Modal */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(4px);
-  z-index: 200;
-  display: none; align-items: center; justify-content: center;
-}
-
-.modal-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.modal {
-  background: var(--white);
-  border-radius: 14px;
-  width: 520px;
-  max-width: calc(100vw - 32px);
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-  animation: slideUp 0.2s ease;
-}
-
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.modal-header {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; background: var(--white); z-index: 1;
-  border-radius: 14px 14px 0 0;
-}
-
-.modal-title { font-size: 15px; font-weight: 700; }
-.modal-close {
-  width: 30px; height: 30px; border-radius: 7px;
-  background: var(--surface2); border: none; cursor: pointer;
-  font-size: 16px; color: var(--text-muted);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.modal-close:hover { background: var(--border); color: var(--text); }
-
-.modal-body { padding: 20px 24px; }
-.modal-footer {
-  padding: 14px 24px;
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: flex-end; gap: 10px;
-  position: sticky; bottom: 0; background: var(--white);
-  border-radius: 0 0 14px 14px;
-}
-
-/* Form */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-grid.full { grid-template-columns: 1fr; }
-
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group.span2 { grid-column: span 2; }
-
-.form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
-
-.form-input, .form-select, .form-textarea {
-  padding: 9px 12px;
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  font-size: 13px; color: var(--text);
-  background: var(--white);
-  outline: none; transition: border-color 0.15s;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: #03C75A;
-  box-shadow: 0 0 0 3px rgba(3,199,90,0.12);
-}
-
-.form-textarea { resize: vertical; min-height: 80px; }
-
-/* Toast */
-.toast-container {
-  position: fixed; bottom: 24px; right: 24px; z-index: 999;
-  display: flex; flex-direction: column; gap: 8px;
-}
-
-.toast {
-  background: #0a1a0f; color: #fff;
-  padding: 12px 16px; border-radius: 10px;
-  font-size: 13px; font-weight: 500;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  animation: toastIn 0.2s ease;
-  max-width: 300px;
-}
-
-@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.toast.success { border-left: 3px solid var(--green); }
-.toast.error { border-left: 3px solid var(--red); }
-.toast.info { border-left: 3px solid var(--accent); }
-
-/* Delete confirm */
-.confirm-modal { width: 380px; }
-.confirm-body { padding: 24px; text-align: center; }
-.confirm-icon { font-size: 36px; margin-bottom: 12px; }
-.confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.confirm-desc { font-size: 13px; color: var(--text-muted); }
-
-/* Empty state */
-.empty-state {
-  padding: 48px; text-align: center; color: var(--text-muted);
-}
-.empty-icon { font-size: 32px; margin-bottom: 10px; }
-.empty-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.empty-sub { font-size: 12px; }
-
-/* Mono text */
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.floor-sum-floor{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:4px;}
+.floor-sum-num{font-size:22px;font-weight:900;color:var(--green);letter-spacing:-1px;}
+.floor-sum-label{font-size:10px;color:var(--text3);}
+.floor-sum-bar{height:4px;border-radius:2px;background:var(--gray2);margin-top:8px;overflow:hidden;}
+.floor-sum-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s ease;}
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:#1e2535;color:white;padding:11px 16px;border-radius:10px;
+  font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);animation:toastIn .2s ease;
+  border-left:3px solid var(--green);
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* ===== PERIOD FILTER ===== */
+.period-filter{display:flex;align-items:center;gap:6px;}
+.period-select{
+  padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:12px;font-weight:700;font-family:'NanumSquare',sans-serif;
+  color:var(--text);background:var(--white);outline:none;cursor:pointer;
+  transition:border-color .15s;
+}
+.period-select:focus,.period-select:hover{border-color:var(--green);}
+.period-label{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;background:var(--green3);border:1px solid var(--green4);
+  border-radius:6px;font-size:11px;font-weight:700;color:var(--green2);
+}
+
+/* ===== UPLOAD / DOWNLOAD ===== */
+.upload-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:7px;font-size:12px;font-weight:700;
+  cursor:pointer;border:none;font-family:'NanumSquare',sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.upload-btn.primary{background:var(--green);color:#fff;}
+.upload-btn.primary:hover{background:var(--green2);}
+.upload-btn.outline{background:var(--white);color:var(--text2);border:1.5px solid var(--border);}
+.upload-btn.outline:hover{border-color:var(--green);color:var(--green);}
+.upload-area{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center;
+}
+.upload-area.open{display:flex;animation:fadeIn .15s ease;}
+.upload-box{
+  background:var(--white);border-radius:14px;width:480px;
+  box-shadow:0 24px 60px rgba(0,0,0,.15);animation:slideUp .2s ease;
+}
+.upload-box-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.upload-box-title{font-size:14px;font-weight:800;}
+.upload-drop{
+  margin:18px 20px;border:2px dashed var(--border);border-radius:10px;
+  padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;
+  background:var(--gray1);
+}
+.upload-drop:hover,.upload-drop.dragover{border-color:var(--green);background:var(--green3);}
+.upload-drop-icon{font-size:32px;margin-bottom:10px;}
+.upload-drop-text{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px;}
+.upload-drop-sub{font-size:11px;color:var(--text3);}
+.upload-preview{margin:0 20px 18px;display:none;}
+.upload-preview-file{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--green3);border:1px solid var(--green4);border-radius:8px;
+}
+.upload-preview-name{font-size:12px;font-weight:700;color:var(--green2);flex:1;}
+.upload-preview-size{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.upload-sheet-select{margin:0 20px 14px;}
+.upload-sheet-select label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.upload-sheet-select select{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'NanumSquare',sans-serif;outline:none;}
+.upload-sheet-select select:focus{border-color:var(--green);}
+.upload-box-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.upload-guide{margin:0 20px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;}
+.upload-guide-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px;}
+.upload-guide li{font-size:11px;color:#78350f;margin-left:14px;line-height:1.7;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/>
-        </svg>
-      </div>
-      <div class="logo-name">연수원 관리시스템</div>
-      <div class="logo-sub">NAVER · DATA MANAGER</div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="n-mark">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/></svg>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">데이터 관리</div>
-      <button class="nav-item active" onclick="showPage('room', this)">
-        <span class="icon">🏨</span> 객실 예약/현황
-      </button>
-      <button class="nav-item" onclick="showPage('program', this)">
-        <span class="icon">📚</span> 교육 프로그램
-      </button>
-      <button class="nav-item" onclick="showPage('finance', this)">
-        <span class="icon">💰</span> 수입/지출 내역
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="back-btn">← 대시보드로 돌아가기</button>
+    <span class="topbar-name">NAVER <span>CONNECT ONE</span> 운영현황</span>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-tab active" onclick="showPage('ops',this)">운영현황 · 이용만족도</button>
+    <button class="nav-tab" onclick="showPage('room',this)">객실 관리</button>
+  </div>
+  <div class="topbar-right">
+    <div class="period-filter">
+      <select id="filterYear" onchange="onPeriodChange()" class="period-select">
+        <option value="2025">2025년</option>
+        <option value="2024">2024년</option>
+        <option value="2023">2023년</option>
+      </select>
+      <select id="filterMonth" onchange="onPeriodChange()" class="period-select">
+        <option value="all">전체</option>
+        <option value="1">1월</option><option value="2">2월</option>
+        <option value="3">3월</option><option value="4">4월</option>
+        <option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option>
+        <option value="9">9월</option><option value="10">10월</option>
+        <option value="11">11월</option><option value="12">12월</option>
+      </select>
     </div>
-  </aside>
+    <button class="upload-btn outline" onclick="downloadTemplate()">⬇ 서식 다운로드</button>
+    <button class="upload-btn primary" onclick="openUpload()">⬆ 데이터 업로드</button>
+    <div class="live-dot-wrap"><div class="live-dot"></div>LIVE</div>
+  </div>
+</div>
 
-  <!-- Main -->
-  <div class="main">
-    <!-- Topbar -->
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-title" id="topbarTitle">객실 예약 / 현황 관리</div>
-        <div class="topbar-breadcrumb" id="topbarBreadcrumb">연수원 관리 › 객실</div>
+<!-- ========== PAGE 1: 운영현황 ========== -->
+<div class="page active" id="page-ops">
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">워크샵</div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiWorkshop">124</div><div class="kpi-unit">건</div></div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">17 건</span>
       </div>
-      <div class="topbar-actions">
-        <button class="btn btn-outline" onclick="exportCSV()">⬇ CSV 내보내기</button>
-        <button class="btn btn-primary" id="addBtn" onclick="openAddModal()">+ 새 항목 추가</button>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">누적인원 <span style="font-size:10px;color:var(--text3);font-weight:400;">(이용인원)</span></div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiPerson">2,931</div><div class="kpi-unit">명</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;"><span id="kpiVisitor">1,345</span>명 방문</div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">671 명</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">운영일수</div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiOpDays">22</div><div class="kpi-unit">일</div></div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">14 일</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 행 -->
+  <div class="grid g13" style="margin-bottom:12px;">
+    <!-- 법인별 + 이용일수별 -->
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">법인별 이용현황</div>
+        <div class="donut-wrap">
+          <canvas id="corpChart"></canvas>
+          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,249명</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,473명</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 209명</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">이용일수별 이용현황</div>
+        <div class="donut-wrap">
+          <canvas id="nightChart"></canvas>
+          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 2,294</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 384</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 68</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일 165</div>
+        </div>
+      </div>
+    </div>
+    <!-- 년간 운영현황 -->
+    <div class="card">
+      <div class="card-title">년간 운영현황</div>
+      <div style="height:200px;"><canvas id="yearChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 미팅룸 + 숙소 -->
+  <div class="grid g2">
+    <!-- 미팅룸 -->
+    <div class="card">
+      <div class="card-title">미팅룸 이용현황</div>
+      <div class="card-sub">미팅룸 이용률 = 누적 이용실적 / (미팅룸수 × 위킹데이)</div>
+      <div class="grid g2">
+        <div>
+          <div class="donut-wrap" style="width:120px;height:120px;">
+            <canvas id="meetingChart"></canvas>
+            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">24%</div><div class="donut-center-sub">이용률</div></div>
+          </div>
+          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
+            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 114개소</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 392개소</div>
+          </div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:10px;">규모별 이용 상세</div>
+          <div class="hbar-list">
+            <div class="hbar-row">
+              <div class="hbar-label">대형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:13%;background:#4e7fff;"><span>6개소</span></div></div>
+              <div class="hbar-total">44</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">중형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:41%;background:#4e7fff;"><span>45개소</span></div></div>
+              <div class="hbar-total">110</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">소형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:#4e7fff;"><span>63개소</span></div></div>
+              <div class="hbar-total">330</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">기타</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:1%;background:#c4c5c7;"></div></div>
+              <div class="hbar-total">0</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="content">
-
-      <!-- ===== 객실 페이지 ===== -->
-      <div class="page active" id="page-room">
-        <div class="stats-bar" id="roomStats"></div>
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="search-box">
-              <span>🔍</span>
-              <input type="text" placeholder="객실번호, 예약자명 검색..." oninput="renderRoomTable()" id="roomSearch">
-            </div>
-            <select class="filter-select" onchange="renderRoomTable()" id="roomFilter">
-              <option value="">전체 상태</option>
-              <option value="입실">입실 중</option>
-              <option value="공실">공실</option>
-              <option value="예약">예약 확정</option>
-              <option value="점검">점검 중</option>
-            </select>
+    <!-- 숙소 -->
+    <div class="card">
+      <div class="card-title">숙소 이용현황</div>
+      <div class="card-sub">숙소 이용률 = 누적 이용실적 / (보유숙소수 × 위킹데이)</div>
+      <div class="grid g2">
+        <div>
+          <div class="donut-wrap" style="width:120px;height:120px;">
+            <canvas id="roomUsageChart"></canvas>
+            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">52%</div><div class="donut-center-sub">이용률</div></div>
+          </div>
+          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
+            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 1,586개소</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 1,472개소</div>
           </div>
         </div>
-        <div class="table-card">
-          <div class="table-header">
-            <span class="table-header-title">객실 목록</span>
-            <span class="table-count" id="roomCount">0건</span>
+        <div>
+          <div class="card-title" style="margin-bottom:10px;">층별 이용 상세</div>
+          <div class="hbar-list">
+            <div class="hbar-row">
+              <div class="hbar-label">5층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:0%;background:#4e7fff;"></div></div>
+              <div class="hbar-total" style="color:var(--text3);">0/88</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">4층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:50%;background:#4e7fff;"><span>221개소</span></div></div>
+              <div class="hbar-total">440</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">3층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:39%;background:#4e7fff;"><span>274개소</span></div></div>
+              <div class="hbar-total">704</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">2층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:51%;background:#4e7fff;"><span>435개소</span></div></div>
+              <div class="hbar-total">858</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">1층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:44%;background:#4e7fff;"><span>230개소</span></div></div>
+              <div class="hbar-total">528</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">0층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:38%;background:#4e7fff;"><span>165개소</span></div></div>
+              <div class="hbar-total">440</div>
+            </div>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>객실번호</th>
-                <th>유형</th>
-                <th>상태</th>
-                <th>예약자</th>
-                <th>입실일</th>
-                <th>퇴실일</th>
-                <th>단체/소속</th>
-                <th>비고</th>
-                <th>관리</th>
-              </tr>
-            </thead>
-            <tbody id="roomTableBody"></tbody>
-          </table>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- ===== 교육 프로그램 페이지 ===== -->
-      <div class="page" id="page-program">
-        <div class="stats-bar" id="programStats"></div>
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="search-box">
-              <span>🔍</span>
-              <input type="text" placeholder="프로그램명, 담당자 검색..." oninput="renderProgramTable()" id="programSearch">
-            </div>
-            <select class="filter-select" onchange="renderProgramTable()" id="programFilter">
-              <option value="">전체 상태</option>
-              <option value="운영중">운영 중</option>
-              <option value="예정">예정</option>
-              <option value="종료">종료</option>
-            </select>
+  <!-- 이용만족도 섹션 구분선 -->
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+    <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용만족도</div>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
+  </div>
+
+  <!-- 상단 3열 -->
+  <div class="sat-top">
+    <!-- 응답률 -->
+    <div class="dark-card">
+      <div class="card-title">이용만족도 응답률</div>
+      <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시</div>
+      <div class="donut-wrap" style="width:130px;height:130px;">
+        <canvas id="respChart"></canvas>
+        <div class="donut-center"><div class="donut-center-val">32%</div></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>응답 437명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2d3548"></div>미응답 908명</div>
+      </div>
+    </div>
+    <!-- 만족도 조사 결과 -->
+    <div class="dark-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div class="card-title">이용만족도 조사 결과</div>
+        <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시 · 응답 437명</div>
+      </div>
+      <!-- 100점 환산 점수 -->
+      <div style="text-align:center;padding:10px 0 6px;">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:6px;letter-spacing:.3px;">100점 환산</div>
+        <div style="font-size:46px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;">96.4</div>
+        <div style="font-size:13px;color:#8892a4;margin-top:2px;">/ 100점</div>
+      </div>
+      <!-- 별점 (4.82 / 5.0) -->
+      <div style="text-align:center;padding-bottom:4px;">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:6px;">평균 별점</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:4px;" id="starDisplay"></div>
+        <div style="font-size:18px;font-weight:800;color:#f59e0b;letter-spacing:-.5px;">4.82 <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span></div>
+      </div>
+      <!-- 점수별 분포 -->
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">5점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:84%;background:#4e7fff;height:100%;border-radius:3px;"></div>
           </div>
+          <span style="font-size:10px;color:#8892a4;width:28px;">215명</span>
         </div>
-        <div class="table-card">
-          <div class="table-header">
-            <span class="table-header-title">교육 프로그램 목록</span>
-            <span class="table-count" id="programCount">0건</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">4점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:15%;background:#7ba7ff;height:100%;border-radius:3px;"></div>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>프로그램명</th>
-                <th>대상</th>
-                <th>기간</th>
-                <th>신청/정원</th>
-                <th>충원율</th>
-                <th>담당자</th>
-                <th>장소</th>
-                <th>상태</th>
-                <th>관리</th>
-              </tr>
-            </thead>
-            <tbody id="programTableBody"></tbody>
-          </table>
+          <span style="font-size:10px;color:#8892a4;width:28px;">39명</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">3점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:1%;background:#99bbff;height:100%;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:10px;color:#8892a4;width:28px;">3명</span>
         </div>
       </div>
+    </div>
 
-      <!-- ===== 수입/지출 페이지 ===== -->
-      <div class="page" id="page-finance">
-        <div class="stats-bar" id="financeStats"></div>
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="search-box">
-              <span>🔍</span>
-              <input type="text" placeholder="항목명 검색..." oninput="renderFinanceTable()" id="financeSearch">
-            </div>
-            <select class="filter-select" onchange="renderFinanceTable()" id="financeTypeFilter">
-              <option value="">수입+지출</option>
-              <option value="수입">수입만</option>
-              <option value="지출">지출만</option>
-            </select>
-            <select class="filter-select" onchange="renderFinanceTable()" id="financeCatFilter">
-              <option value="">전체 카테고리</option>
-              <option value="객실">객실</option>
-              <option value="교육">교육</option>
-              <option value="식음료">식음료</option>
-              <option value="인건비">인건비</option>
-              <option value="시설">시설</option>
-              <option value="기타">기타</option>
-            </select>
-          </div>
-        </div>
-        <div class="table-card">
-          <div class="table-header">
-            <span class="table-header-title">수입 / 지출 내역</span>
-            <span class="table-count" id="financeCount">0건</span>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>날짜</th>
-                <th>구분</th>
-                <th>카테고리</th>
-                <th>항목명</th>
-                <th>금액 (만원)</th>
-                <th>담당자</th>
-                <th>메모</th>
-                <th>관리</th>
-              </tr>
-            </thead>
-            <tbody id="financeTableBody"></tbody>
-          </table>
-        </div>
+  </div>
+
+  <!-- 연간 이용만족도 조사결과 추이 -->
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);">이용만족도 조사결과 연간 추이</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">100점 환산 점수 · 월별 응답 기준</div>
       </div>
+      <div style="text-align:right;">
+        <div style="font-size:20px;font-weight:900;color:var(--green);letter-spacing:-1px;">96.4<span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span></div>
+        <div style="font-size:10px;color:var(--text3);">2025년 평균</div>
+      </div>
+    </div>
+    <div style="height:180px;"><canvas id="satTrendChart"></canvas></div>
+  </div>
 
+  <!-- 공간별 만족도 -->
+  <div class="card" style="margin-bottom:0;" id="spaceRatingCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);">공간별 만족도</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">이용자 별점 평균 · 5점 만점</div>
+      </div>
+    </div>
+    <div id="spaceRatingList"></div>
+  </div>
+
+  <!-- 이용자 의견 섹션 구분선 -->
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+    <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용자 의견</div>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
+    <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">총 14건</div>
+  </div>
+
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);">주관식 의견 목록</div>
+      <div style="display:flex;gap:6px;">
+        <select style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);background:white;">
+          <option>전체 유형</option><option>숙소</option><option>미팅룸</option><option>안내 및 서비스</option><option>체육시설</option><option>산책로, 동물농장</option>
+        </select>
+        <select style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);background:white;">
+          <option>전체 평점</option><option>5점</option><option>4점</option><option>3점 이하</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="opinionList">
+      <!-- JS로 렌더링 -->
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ========== PAGE 2: 객실 관리 ========== -->
+<div class="page" id="page-room">
+
+  <div class="section-head">
+    <div class="section-bar"></div>
+    <div class="section-title">객실 배정 현황</div>
+    <div class="section-sub" id="roomSummaryText">전체 141실</div>
+  </div>
+
+  <!-- 층별 요약 -->
+  <div class="floor-summary-grid" id="floorSummary"></div>
+
+  <!-- 범례 -->
+  <div class="room-legend">
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#f0fdf6;border-color:#a7e8c0;"></div>배정 가능
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#eef3ff;border-color:#b3c8ff;"></div>배정 완료
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:var(--gray2);border-color:var(--gray3);"></div>배정 불가 (수동설정)
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#fff8e6;border-color:#ffd97a;"></div>이형 객실
+    </div>
+    <div class="room-legend-item" style="margin-left:auto;">
+      <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;" onclick="resetAll()">전체 초기화</button>
+    </div>
+  </div>
+
+  <!-- 층별 객실 -->
+  <div id="floorContainer"></div>
+</div>
+
+
+<!-- ===== UPLOAD MODAL ===== -->
+<div class="upload-area" id="uploadArea">
+  <div class="upload-box">
+    <div class="upload-box-header">
+      <span class="upload-box-title">📊 운영현황 데이터 업로드</span>
+      <button class="modal-close" onclick="closeUpload()">✕</button>
+    </div>
+
+    <!-- 드래그앤드롭 영역 -->
+    <div class="upload-drop" id="uploadDrop"
+      onclick="document.getElementById('fileInput').click()"
+      ondragover="handleDragOver(event)"
+      ondragleave="handleDragLeave(event)"
+      ondrop="handleDrop(event)">
+      <div class="upload-drop-icon">📂</div>
+      <div class="upload-drop-text">엑셀 파일을 드래그하거나 클릭해서 선택</div>
+      <div class="upload-drop-sub">.xlsx · .xls 파일 지원</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+
+    <!-- 파일 미리보기 -->
+    <div class="upload-preview" id="uploadPreview">
+      <div class="upload-preview-file">
+        <span style="font-size:20px;">📗</span>
+        <span class="upload-preview-name" id="previewName">-</span>
+        <span class="upload-preview-size" id="previewSize">-</span>
+      </div>
+    </div>
+
+    <!-- 시트 선택 -->
+    <div class="upload-sheet-select" id="sheetSelectWrap" style="display:none;">
+      <label>시트 선택</label>
+      <select id="sheetSelect"></select>
+    </div>
+
+    <!-- 업로드 가이드 -->
+    <div class="upload-guide">
+      <div class="upload-guide-title">📋 업로드 양식 안내</div>
+      <ul>
+        <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
+        <li>필수 컬럼: 월, 워크샵건수, 누적인원, 방문인원, 운영일수</li>
+        <li>법인별: NAVER, NAVER계열, LINE계열 인원 포함</li>
+        <li>이용일수별: 1박2일, 2박3일, 3박4일, 4박5일 인원 포함</li>
+      </ul>
+    </div>
+
+    <div class="upload-box-footer">
+      <button class="btn btn-outline" onclick="closeUpload()">취소</button>
+      <button class="btn btn-primary" id="uploadConfirmBtn" onclick="confirmUpload()" disabled style="opacity:.4;cursor:not-allowed;">데이터 적용</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: 객실 -->
+</div><!-- /app -->
+
+<!-- MODAL -->
 <div class="modal-overlay" id="roomModal">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title" id="roomModalTitle">객실 추가</span>
-      <button class="modal-close" onclick="closeModal('roomModal')">✕</button>
+      <span class="modal-title" id="modalTitle">객실 배정</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
+      <div class="room-info-box">
+        <div>
+          <div class="room-info-num" id="modalRoomNum">---</div>
+          <div class="room-info-tag" id="modalRoomTag">일반 객실</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text3);text-align:right;" id="modalCurrentInfo"></div>
+      </div>
+      <div id="modalFormArea">
         <div class="form-group">
-          <label class="form-label">객실번호 *</label>
-          <input class="form-input" id="r_num" placeholder="예) 101">
+          <label class="form-label">이름 *</label>
+          <input class="form-input" id="inputName" placeholder="배정받는 분의 이름">
         </div>
         <div class="form-group">
-          <label class="form-label">유형 *</label>
-          <select class="form-select" id="r_type">
-            <option>1인실</option><option>2인실</option><option>4인실</option><option>세미나실</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">상태 *</label>
-          <select class="form-select" id="r_status">
-            <option>공실</option><option>입실</option><option>예약</option><option>점검</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">예약자명</label>
-          <input class="form-input" id="r_guest" placeholder="예) 홍길동">
-        </div>
-        <div class="form-group">
-          <label class="form-label">단체/소속</label>
-          <input class="form-input" id="r_org" placeholder="예) 인사팀">
-        </div>
-        <div class="form-group">
-          <label class="form-label">입실일</label>
-          <input class="form-input" id="r_checkin" type="date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">퇴실일</label>
-          <input class="form-input" id="r_checkout" type="date">
-        </div>
-        <div class="form-group span2">
-          <label class="form-label">비고</label>
-          <input class="form-input" id="r_note" placeholder="특이사항 등">
+          <label class="form-label">소속 *</label>
+          <input class="form-input" id="inputOrg" placeholder="팀명 또는 조직">
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('roomModal')">취소</button>
-      <button class="btn btn-primary" onclick="saveRoom()">저장</button>
+    <div class="modal-footer" id="modalFooter">
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmAssign()">배정 완료</button>
     </div>
   </div>
 </div>
-
-<!-- Modal: 교육 프로그램 -->
-<div class="modal-overlay" id="programModal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="programModalTitle">프로그램 추가</span>
-      <button class="modal-close" onclick="closeModal('programModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group span2">
-          <label class="form-label">프로그램명 *</label>
-          <input class="form-input" id="p_name" placeholder="예) 신입사원 입문교육">
-        </div>
-        <div class="form-group">
-          <label class="form-label">대상</label>
-          <input class="form-input" id="p_target" placeholder="예) 신입직원">
-        </div>
-        <div class="form-group">
-          <label class="form-label">담당자</label>
-          <input class="form-input" id="p_manager" placeholder="예) 김담당">
-        </div>
-        <div class="form-group">
-          <label class="form-label">시작일</label>
-          <input class="form-input" id="p_start" type="date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">종료일</label>
-          <input class="form-input" id="p_end" type="date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">신청인원</label>
-          <input class="form-input" id="p_applied" type="number" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">정원</label>
-          <input class="form-input" id="p_cap" type="number" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">장소</label>
-          <input class="form-input" id="p_venue" placeholder="예) 대강당">
-        </div>
-        <div class="form-group">
-          <label class="form-label">상태</label>
-          <select class="form-select" id="p_status">
-            <option>예정</option><option>운영중</option><option>종료</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('programModal')">취소</button>
-      <button class="btn btn-primary" onclick="saveProgram()">저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: 수입/지출 -->
-<div class="modal-overlay" id="financeModal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="financeModalTitle">수입/지출 추가</span>
-      <button class="modal-close" onclick="closeModal('financeModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">날짜 *</label>
-          <input class="form-input" id="f_date" type="date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">구분 *</label>
-          <select class="form-select" id="f_type">
-            <option>수입</option><option>지출</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">카테고리</label>
-          <select class="form-select" id="f_cat">
-            <option>객실</option><option>교육</option><option>식음료</option><option>인건비</option><option>시설</option><option>기타</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">담당자</label>
-          <input class="form-input" id="f_manager" placeholder="예) 홍길동">
-        </div>
-        <div class="form-group span2">
-          <label class="form-label">항목명 *</label>
-          <input class="form-input" id="f_name" placeholder="예) 1월 객실 이용료">
-        </div>
-        <div class="form-group">
-          <label class="form-label">금액 (만원) *</label>
-          <input class="form-input" id="f_amount" type="number" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">메모</label>
-          <input class="form-input" id="f_memo" placeholder="관련 메모">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('financeModal')">취소</button>
-      <button class="btn btn-primary" onclick="saveFinance()">저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirm -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal confirm-modal">
-    <div class="confirm-body">
-      <div class="confirm-icon">🗑️</div>
-      <div class="confirm-title">정말 삭제할까요?</div>
-      <div class="confirm-desc" id="confirmDesc">이 작업은 되돌릴 수 없습니다.</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('confirmModal')">취소</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">삭제</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ================= STATE =================
-let currentPage = 'room';
-let editingId = null;
-let deleteCallback = null;
-
-// ================= SAMPLE DATA =================
-let roomData = [
-  { id: 1, num: '101', type: '1인실', status: '입실', guest: '김민준', org: '인사팀', checkin: '2025-01-06', checkout: '2025-01-17', note: '' },
-  { id: 2, num: '102', type: '1인실', status: '입실', guest: '이서연', org: '경영지원팀', checkin: '2025-01-06', checkout: '2025-01-10', note: '' },
-  { id: 3, num: '103', type: '1인실', status: '공실', guest: '', org: '', checkin: '', checkout: '', note: '' },
-  { id: 4, num: '104', type: '1인실', status: '예약', guest: '박준호', org: '개발팀', checkin: '2025-01-20', checkout: '2025-01-24', note: '채식 식단 요청' },
-  { id: 5, num: '105', type: '2인실', status: '점검', guest: '', org: '', checkin: '', checkout: '', note: '에어컨 수리 중' },
-  { id: 6, num: '201', type: '2인실', status: '입실', guest: '최지우', org: '마케팅팀', checkin: '2025-01-13', checkout: '2025-01-15', note: '' },
-  { id: 7, num: '202', type: '2인실', status: '입실', guest: '정하은', org: '전략기획팀', checkin: '2025-01-13', checkout: '2025-01-15', note: '' },
-  { id: 8, num: '203', type: '4인실', status: '예약', guest: '강민서', org: 'IT팀', checkin: '2025-02-03', checkout: '2025-02-05', note: '' },
-  { id: 9, num: '301', type: '세미나실', status: '입실', guest: '(단체)', org: '전체직원', checkin: '2025-01-13', checkout: '2025-01-13', note: '리더십 과정 사용' },
-  { id: 10, num: '302', type: '세미나실', status: '공실', guest: '', org: '', checkin: '', checkout: '', note: '' },
-];
-
-let programData = [
-  { id: 1, name: '신입사원 입문교육', target: '신입직원', start: '2025-01-06', end: '2025-01-17', applied: 42, cap: 50, manager: '김담당', venue: '대강당', status: '운영중' },
-  { id: 2, name: '리더십 과정', target: '팀장급', start: '2025-01-13', end: '2025-01-15', applied: 28, cap: 30, manager: '이부장', venue: '301호 세미나실', status: '운영중' },
-  { id: 3, name: '디지털 전환 교육', target: '전직원', start: '2025-01-20', end: '2025-01-24', applied: 35, cap: 40, manager: '박과장', venue: '대강당', status: '운영중' },
-  { id: 4, name: '안전교육 기초', target: '현장직', start: '2025-02-03', end: '2025-02-05', applied: 18, cap: 30, manager: '최담당', venue: '소강의실', status: '예정' },
-  { id: 5, name: '글로벌 비즈니스', target: '해외사업부', start: '2025-02-10', end: '2025-02-14', applied: 22, cap: 25, manager: '정팀장', venue: '302호 세미나실', status: '예정' },
-  { id: 6, name: '소통·협업 워크숍', target: '전직원', start: '2024-12-09', end: '2024-12-11', applied: 60, cap: 60, manager: '강매니저', venue: '대강당', status: '종료' },
-];
-
-let financeData = [
-  { id: 1, date: '2025-01-03', type: '수입', cat: '객실', name: '1월 객실 이용료 (1차)', amount: 1200, manager: '총무팀', memo: '' },
-  { id: 2, date: '2025-01-05', type: '지출', cat: '인건비', name: '1월 직원 급여', amount: 1240, manager: '인사팀', memo: '정규직 기준' },
-  { id: 3, date: '2025-01-08', type: '수입', cat: '교육', name: '신입사원 입문교육 수강료', amount: 840, manager: '교육팀', memo: '42명 × 20만원' },
-  { id: 4, date: '2025-01-10', type: '지출', cat: '시설', name: '시설 유지보수비', amount: 380, manager: '시설팀', memo: '에어컨 수리 포함' },
-  { id: 5, date: '2025-01-12', type: '수입', cat: '식음료', name: '구내식당 수입', amount: 420, manager: '급식팀', memo: '' },
-  { id: 6, date: '2025-01-15', type: '지출', cat: '식음료', name: '식재료 구매비', amount: 520, manager: '급식팀', memo: '이달치 일괄 구매' },
-  { id: 7, date: '2025-01-18', type: '수입', cat: '객실', name: '1월 객실 이용료 (2차)', amount: 920, manager: '총무팀', memo: '' },
-  { id: 8, date: '2025-01-20', type: '수입', cat: '교육', name: '리더십 과정 수강료', amount: 740, manager: '교육팀', memo: '28명 × 26.4만원' },
-  { id: 9, date: '2025-01-22', type: '지출', cat: '기타', name: '사무용품 및 소모품', amount: 160, manager: '총무팀', memo: '' },
-  { id: 10, date: '2025-01-25', type: '수입', cat: '기타', name: '부대시설 이용료', amount: 340, manager: '총무팀', memo: '세미나룸, 헬스장 등' },
-  { id: 11, date: '2025-01-28', type: '지출', cat: '교육', name: '강사 강의료', amount: 340, manager: '교육팀', memo: '외부 강사 3명' },
-  { id: 12, date: '2025-01-30', type: '수입', cat: '교육', name: '디지털 전환 교육 수강료', amount: 360, manager: '교육팀', memo: '' },
-];
-
-let nextId = { room: 11, program: 7, finance: 13 };
-
-// ================= NAVIGATION =================
+// ===== PAGE NAVIGATION =====
 function showPage(name, btn) {
-  currentPage = name;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
-
-  const titles = { room: ['객실 예약 / 현황 관리', '연수원 관리 › 객실'], program: ['교육 프로그램 관리', '연수원 관리 › 프로그램'], finance: ['수입 / 지출 내역 관리', '연수원 관리 › 재정'] };
-  document.getElementById('topbarTitle').textContent = titles[name][0];
-  document.getElementById('topbarBreadcrumb').textContent = titles[name][1];
-  renderAll();
+  if (name === 'room') renderRoomSummary();
+  else window.scrollTo({ top: 0 });
 }
 
-// ================= RENDER =================
-function renderAll() {
-  renderRoomStats(); renderRoomTable();
-  renderProgramStats(); renderProgramTable();
-  renderFinanceStats(); renderFinanceTable();
+// ===== CHART DEFAULTS =====
+Chart.defaults.font.family = "'NanumSquare', sans-serif";
+Chart.defaults.font.size = 11;
+
+const BLUE_PALETTE = ['#4e7fff','#7ba7ff','#99bbff','#b8d0ff','#d6e6ff','#eef3ff'];
+const GREEN_PALETTE = ['#03C75A','#00983A','#3dbb70','#7dd4a4','#b6e8cc','#ddf4e8'];
+
+// ===== DONUT HELPER =====
+function donut(id, data, labels, colors, cutout='65%') {
+  return new Chart(document.getElementById(id), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw.toLocaleString() }
+      }}
+    }
+  });
 }
 
-// --- Room ---
-function renderRoomStats() {
-  const total = roomData.length;
-  const occupied = roomData.filter(r => r.status === '입실').length;
-  const reserved = roomData.filter(r => r.status === '예약').length;
-  const maint = roomData.filter(r => r.status === '점검').length;
-  const rate = total ? Math.round((occupied / total) * 100) : 0;
-  document.getElementById('roomStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">전체 객실</div><div class="stat-value blue">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">입실 중</div><div class="stat-value green">${occupied}</div></div>
-    <div class="stat-card"><div class="stat-label">예약 확정</div><div class="stat-value amber">${reserved}</div></div>
-    <div class="stat-card"><div class="stat-label">가동률</div><div class="stat-value blue">${rate}%</div></div>`;
+// ===== CHARTS: PAGE 1 =====
+window._corpChart = donut('corpChart', [1249, 1473, 209], ['NAVER','NAVER계열','LINE계열'], ['#4e7fff','#7ba7ff','#b8d0ff']);
+window._nightChart = donut('nightChart', [2294, 384, 68, 165], ['1박2일','2박3일','3박4일','4박5일'], ['#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
+donut('meetingChart', [114, 392-114], ['이용','가용'], ['#4e7fff','#dde8ff']);
+donut('roomUsageChart', [1586, 1472], ['이용','가용'], ['#4e7fff','#dde8ff']);
+
+// 년간 운영현황
+window._yearChart = new Chart(document.getElementById('yearChart'), {
+  data: {
+    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+    datasets: [
+      {
+        type: 'bar', label: '누적인원',
+        data: [2115,974,2336,2931,0,0,0,0,0,0,0,0],
+        backgroundColor: '#1D1D1B', borderRadius: 4, yAxisID: 'y'
+      },
+      {
+        type: 'line', label: '운영일수',
+        data: [21,15,21,22,null,null,null,null,null,null,null,null],
+        borderColor: '#4e7fff', backgroundColor: 'transparent',
+        pointBackgroundColor: '#4e7fff', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
+      },
+      {
+        type: 'line', label: '워크샵건수',
+        data: [74,65,83,124,53,null,null,null,null,null,null,null],
+        borderColor: '#c4c5c7', backgroundColor: 'transparent',
+        pointBackgroundColor: '#c4c5c7', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8 } } },
+    scales: {
+      y: { position: 'left', grid: { color: '#eaebec' }, ticks: { callback: v => v.toLocaleString() } },
+      y2: { position: 'right', grid: { display: false }, min: 0, max: 150 },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ===== CHARTS: PAGE 2 =====
+const darkBg = '#1e2535';
+
+new Chart(document.getElementById('respChart'), {
+  type: 'doughnut',
+  data: { datasets: [{ data: [437, 908], backgroundColor: ['#4e7fff','#2d3548'], borderColor: darkBg, borderWidth: 2 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
+});
+
+
+
+
+
+
+// ===== ROOM DATA =====
+// 객실명 형식: 층수.호실번호 (예: 5.01, 4.09, 2.13)
+function makeRooms(floor, count) {
+  return Array.from({length: count}, (_, i) => `${floor}.${String(i+1).padStart(2,'0')}`);
 }
 
-function renderRoomTable() {
-  const q = (document.getElementById('roomSearch')?.value || '').toLowerCase();
-  const f = document.getElementById('roomFilter')?.value || '';
-  const filtered = roomData.filter(r =>
-    (!q || r.num.includes(q) || r.guest.toLowerCase().includes(q) || r.org.toLowerCase().includes(q)) &&
-    (!f || r.status === f)
-  );
-  document.getElementById('roomCount').textContent = filtered.length + '건';
-  const tbody = document.getElementById('roomTableBody');
-  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏨</div><div class="empty-title">조건에 맞는 객실이 없습니다</div></div></td></tr>`; return; }
-  const badgeMap = { '입실': 'badge-blue', '공실': 'badge-green', '예약': 'badge-amber', '점검': 'badge-red' };
-  tbody.innerHTML = filtered.map(r => `
-    <tr>
-      <td><strong class="mono">${r.num}</strong></td>
-      <td><span class="badge badge-gray">${r.type}</span></td>
-      <td><span class="badge ${badgeMap[r.status]}">${r.status}</span></td>
-      <td>${r.guest || '<span style="color:var(--text-dim)">-</span>'}</td>
-      <td class="mono">${r.checkin || '-'}</td>
-      <td class="mono">${r.checkout || '-'}</td>
-      <td>${r.org || '-'}</td>
-      <td style="color:var(--text-muted);font-size:12px">${r.note || '-'}</td>
-      <td><div class="actions">
-        <button class="btn-icon" onclick="editRoom(${r.id})" title="수정">✏️</button>
-        <button class="btn-icon danger" onclick="deleteItem('room', ${r.id})" title="삭제">🗑️</button>
-      </div></td>
-    </tr>`).join('');
-}
+const FLOORS = [
+  {
+    floor: 5, label: '5층', tag: 'VIP', isVip: true,
+    rooms: makeRooms(5, 4)
+  },
+  {
+    floor: 4, label: '4층', tag: '일반',
+    rooms: makeRooms(4, 20),
+    irregular: ['4.09']
+  },
+  {
+    floor: 3, label: '3층', tag: '일반',
+    rooms: makeRooms(3, 32)
+  },
+  {
+    floor: 2, label: '2층', tag: '일반',
+    rooms: makeRooms(2, 39),
+    irregular: ['2.13']
+  },
+  {
+    floor: 1, label: '1층', tag: '일반',
+    rooms: makeRooms(1, 24)
+  },
+  {
+    floor: 0, label: 'B1(0층)', tag: '일반',
+    rooms: makeRooms(0, 20)
+  }
+];
 
-// --- Program ---
-function renderProgramStats() {
-  const running = programData.filter(p => p.status === '운영중').length;
-  const planned = programData.filter(p => p.status === '예정').length;
-  const closed = programData.filter(p => p.status === '종료').length;
-  const totalApplied = programData.reduce((a, p) => a + (+p.applied), 0);
-  document.getElementById('programStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">운영 중</div><div class="stat-value green">${running}</div></div>
-    <div class="stat-card"><div class="stat-label">예정</div><div class="stat-value blue">${planned}</div></div>
-    <div class="stat-card"><div class="stat-label">종료</div><div class="stat-value" style="color:var(--text-muted)">${closed}</div></div>
-    <div class="stat-card"><div class="stat-label">총 신청 인원</div><div class="stat-value amber">${totalApplied.toLocaleString()}명</div></div>`;
-}
+// roomState: { [roomNum]: { status: 'available'|'assigned'|'unavailable'|'irregular', name:'', org:'' } }
+let roomState = {};
 
-function renderProgramTable() {
-  const q = (document.getElementById('programSearch')?.value || '').toLowerCase();
-  const f = document.getElementById('programFilter')?.value || '';
-  const filtered = programData.filter(p =>
-    (!q || p.name.toLowerCase().includes(q) || p.manager.toLowerCase().includes(q)) &&
-    (!f || p.status === f)
-  );
-  document.getElementById('programCount').textContent = filtered.length + '건';
-  const tbody = document.getElementById('programTableBody');
-  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">프로그램이 없습니다</div></div></td></tr>`; return; }
-  const badgeMap = { '운영중': 'badge-green', '예정': 'badge-blue', '종료': 'badge-gray' };
-  tbody.innerHTML = filtered.map(p => {
-    const pct = p.cap ? Math.round((p.applied / p.cap) * 100) : 0;
-    const barColor = pct >= 90 ? '#059669' : pct >= 60 ? '#2563eb' : '#d97706';
-    return `<tr>
-      <td><strong>${p.name}</strong></td>
-      <td>${p.target}</td>
-      <td class="mono" style="font-size:11px">${p.start}<br>${p.end}</td>
-      <td>${p.applied}/${p.cap}명</td>
-      <td style="min-width:100px">
-        <div style="display:flex;align-items:center;gap:6px">
-          <div style="flex:1;background:#f1f5f9;border-radius:3px;height:5px">
-            <div style="width:${pct}%;background:${barColor};height:5px;border-radius:3px"></div>
-          </div>
-          <span style="font-size:11px;color:${barColor};font-family:'JetBrains Mono',monospace">${pct}%</span>
+// Initialize
+FLOORS.forEach(f => {
+  f.rooms.forEach(r => {
+    const isIrregular = f.irregular && f.irregular.includes(r);
+    roomState[r] = { status: isIrregular ? 'irregular' : 'available', name: '', org: '' };
+  });
+});
+
+let currentRoom = null;
+
+function renderFloors() {
+  const container = document.getElementById('floorContainer');
+  container.innerHTML = '';
+  FLOORS.forEach(f => {
+    const sec = document.createElement('div');
+    sec.className = 'floor-section';
+
+    const available = f.rooms.filter(r => roomState[r].status === 'available').length;
+    const assigned = f.rooms.filter(r => roomState[r].status === 'assigned').length;
+    const irregular = (f.irregular || []).length;
+    const unavail = f.rooms.filter(r => roomState[r].status === 'unavailable').length;
+
+    sec.innerHTML = `
+      <div class="floor-head">
+        <span class="floor-label">${f.label}</span>
+        <span class="floor-tag ${f.isVip ? 'vip' : ''}">${f.tag} · ${f.rooms.length}실</span>
+        <div class="floor-stats">
+          <div>배정가능 <span style="color:var(--green)">${available}</span></div>
+          <div>배정완료 <span style="color:var(--blue)">${assigned}</span></div>
+          ${irregular > 0 ? `<div>이형 <span style="color:#c47a00">${irregular}</span></div>` : ''}
+          ${unavail > 0 ? `<div>배정불가 <span>${unavail}</span></div>` : ''}
         </div>
-      </td>
-      <td>${p.manager}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${p.venue}</td>
-      <td><span class="badge ${badgeMap[p.status]}">${p.status}</span></td>
-      <td><div class="actions">
-        <button class="btn-icon" onclick="editProgram(${p.id})">✏️</button>
-        <button class="btn-icon danger" onclick="deleteItem('program', ${p.id})">🗑️</button>
-      </div></td>
-    </tr>`;
+      </div>
+      <div class="room-grid" id="grid-${f.floor}"></div>`;
+    container.appendChild(sec);
+
+    const grid = document.getElementById(`grid-${f.floor}`);
+    f.rooms.forEach(r => {
+      const s = roomState[r];
+      const cell = document.createElement('div');
+      cell.className = `room-cell ${s.status}`;
+      cell.id = `room-${r}`;
+
+      let inner = '';
+      if (f.isVip) inner += `<div class="vip-badge">V</div>`;
+
+      if (s.status === 'assigned') {
+        inner += `<div class="room-num">${r}</div>
+          <div class="room-person">${s.name}</div>
+          <div class="room-org">${s.org}</div>`;
+      } else if (s.status === 'irregular') {
+        inner += `<div class="room-num">${r}</div><div class="room-status" style="font-size:9px;">이형</div>`;
+      } else if (s.status === 'unavailable') {
+        inner += `<div class="room-num">${r}</div><div class="room-status">배정불가</div>`;
+      } else {
+        inner += `<div class="room-num">${r}</div><div class="room-status">가능</div>`;
+      }
+
+      cell.innerHTML = inner;
+      if (s.status !== 'irregular') {
+        cell.onclick = () => openRoomModal(r, f);
+      }
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderRoomSummary() {
+  renderFloors();
+  const summaryEl = document.getElementById('floorSummary');
+  summaryEl.innerHTML = '';
+  let totalAssigned = 0, totalAvail = 0;
+  FLOORS.forEach(f => {
+    const total = f.rooms.length;
+    const assigned = f.rooms.filter(r => roomState[r].status === 'assigned').length;
+    const available = f.rooms.filter(r => roomState[r].status === 'available').length;
+    totalAssigned += assigned;
+    totalAvail += available;
+    const pct = total ? Math.round(assigned / total * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'floor-sum-card';
+    card.innerHTML = `
+      <div class="floor-sum-floor">${f.label}</div>
+      <div class="floor-sum-num">${assigned}</div>
+      <div class="floor-sum-label">/ ${total}실 배정</div>
+      <div class="floor-sum-bar"><div class="floor-sum-fill" style="width:${pct}%"></div></div>`;
+    summaryEl.appendChild(card);
+  });
+  document.getElementById('roomSummaryText').textContent =
+    `전체 141실 · 배정완료 ${totalAssigned}실 · 가용 ${totalAvail}실`;
+}
+
+// ===== MODAL =====
+function openRoomModal(roomNum, floorInfo) {
+  currentRoom = roomNum;
+  const s = roomState[roomNum];
+  document.getElementById('modalRoomNum').textContent = roomNum;
+  document.getElementById('modalRoomTag').textContent =
+    floorInfo.isVip ? 'VIP 객실' : '일반 객실';
+
+  const overlay = document.getElementById('roomModal');
+  const footer = document.getElementById('modalFooter');
+  const formArea = document.getElementById('modalFormArea');
+  const currentInfo = document.getElementById('modalCurrentInfo');
+
+  if (s.status === 'assigned') {
+    document.getElementById('modalTitle').textContent = '배정 정보';
+    currentInfo.innerHTML = `<div style="font-weight:700;color:var(--blue)">${s.name}</div><div>${s.org}</div>`;
+    formArea.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input class="form-input" id="inputName" value="${s.name}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">소속</label>
+        <input class="form-input" id="inputOrg" value="${s.org}">
+      </div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-danger" onclick="cancelAssign()">배정 취소</button>
+      <button class="btn btn-primary" onclick="confirmAssign()">수정 저장</button>`;
+  } else if (s.status === 'unavailable') {
+    document.getElementById('modalTitle').textContent = '배정 불가 설정됨';
+    currentInfo.innerHTML = '';
+    formArea.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:10px 0;">이 객실은 현재 배정 불가로 설정되어 있습니다.</div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">닫기</button>
+      <button class="btn btn-primary" onclick="setAvailable()">배정 가능으로 변경</button>`;
+  } else {
+    document.getElementById('modalTitle').textContent = '객실 배정';
+    currentInfo.innerHTML = '';
+    formArea.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">이름 *</label>
+        <input class="form-input" id="inputName" placeholder="배정받는 분의 이름">
+      </div>
+      <div class="form-group">
+        <label class="form-label">소속 *</label>
+        <input class="form-input" id="inputOrg" placeholder="팀명 또는 조직">
+      </div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-outline" style="color:var(--gray4);" onclick="setUnavailable()">배정 불가 처리</button>
+      <button class="btn btn-primary" onclick="confirmAssign()">배정 완료</button>`;
+  }
+  overlay.classList.add('open');
+  setTimeout(() => { const inp = document.getElementById('inputName'); if(inp) inp.focus(); }, 100);
+}
+
+function closeModal() {
+  document.getElementById('roomModal').classList.remove('open');
+  currentRoom = null;
+}
+
+function confirmAssign() {
+  const name = (document.getElementById('inputName')?.value || '').trim();
+  const org = (document.getElementById('inputOrg')?.value || '').trim();
+  if (!name || !org) { showToast('이름과 소속을 모두 입력해주세요', 'warn'); return; }
+  roomState[currentRoom] = { status: 'assigned', name, org };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 완료`, 'success');
+}
+
+function cancelAssign() {
+  roomState[currentRoom] = { status: 'available', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정이 취소됐습니다`, 'info');
+}
+
+function setUnavailable() {
+  roomState[currentRoom] = { status: 'unavailable', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 불가 처리됐습니다`, 'info');
+}
+
+function setAvailable() {
+  roomState[currentRoom] = { status: 'available', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 가능으로 변경됐습니다`, 'success');
+}
+
+function resetAll() {
+  if (!confirm('모든 객실 배정을 초기화할까요?')) return;
+  FLOORS.forEach(f => {
+    f.rooms.forEach(r => {
+      const isIrregular = f.irregular && f.irregular.includes(r);
+      roomState[r] = { status: isIrregular ? 'irregular' : 'available', name: '', org: '' };
+    });
+  });
+  renderRoomSummary();
+  showToast('전체 초기화됐습니다', 'info');
+}
+
+// ===== MODAL CLOSE on overlay =====
+document.getElementById('roomModal').addEventListener('click', e => {
+  if (e.target.id === 'roomModal') closeModal();
+});
+
+// ===== TOAST =====
+function showToast(msg, type = 'success') {
+  const icons = { success: '✅', info: 'ℹ️', warn: '⚠️' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.borderLeftColor = type === 'success' ? 'var(--green)' : type === 'warn' ? '#f59e0b' : '#4e7fff';
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 2500);
+}
+
+// Initial render
+renderRoomSummary();
+
+// ===== 공간별 만족도 별점 =====
+const SPACE_RATINGS = [
+  { name: '미팅룸',           icon: '🏢', score: 4.7, count: 89 },
+  { name: '숙소',             icon: '🛏️', score: 4.8, count: 261 },
+  { name: '식당',             icon: '🍽️', score: 4.5, count: 143 },
+  { name: '체육관, 풋살코트', icon: '⚽', score: 4.6, count: 54 },
+  { name: '라운지',           icon: '☕', score: 4.9, count: 78 },
+  { name: '동물농장',         icon: '🐾', score: 4.8, count: 32 },
+];
+
+function makeSpaceStar(score, size=17) {
+  return Array.from({length: 5}, (_, i) => {
+    const fill = Math.min(1, Math.max(0, score - i));
+    const pct = Math.round(fill * 100);
+    const uid = 'sr' + i + '_' + Math.random().toString(36).slice(2,7);
+    if (pct >= 100) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b"/></svg>`;
+    } else if (pct > 0) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24">
+        <defs><linearGradient id="${uid}" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="${pct}%" stop-color="#f59e0b"/>
+          <stop offset="${pct}%" stop-color="#e2e8f0"/>
+        </linearGradient></defs>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="url(#${uid})"/>
+      </svg>`;
+    } else {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#e2e8f0"/></svg>`;
+    }
   }).join('');
 }
 
-// --- Finance ---
-function renderFinanceStats() {
-  const income = financeData.filter(f => f.type === '수입').reduce((a, f) => a + (+f.amount), 0);
-  const expense = financeData.filter(f => f.type === '지출').reduce((a, f) => a + (+f.amount), 0);
-  const net = income - expense;
-  document.getElementById('financeStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">총 수입</div><div class="stat-value green">${income.toLocaleString()}만원</div></div>
-    <div class="stat-card"><div class="stat-label">총 지출</div><div class="stat-value red">${expense.toLocaleString()}만원</div></div>
-    <div class="stat-card"><div class="stat-label">순이익</div><div class="stat-value ${net >= 0 ? 'blue' : 'red'}">${net.toLocaleString()}만원</div></div>
-    <div class="stat-card"><div class="stat-label">건수</div><div class="stat-value amber">${financeData.length}건</div></div>`;
+function renderSpaceRatings() {
+  const el = document.getElementById('spaceRatingList');
+  if (!el) return;
+  el.innerHTML = SPACE_RATINGS.map((s, idx) => {
+    const pct = (s.score / 5) * 100;
+    const color = s.score >= 4.8 ? '#03C75A' : s.score >= 4.5 ? '#4e7fff' : '#f59e0b';
+    const isLast = idx === SPACE_RATINGS.length - 1;
+    return `<div style="display:flex;align-items:center;gap:16px;padding:13px 0;${isLast ? '' : 'border-bottom:1px solid var(--border);'}">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gray1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${s.icon}</div>
+      <div style="width:110px;flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${s.count}명 응답</div>
+      </div>
+      <div style="display:flex;gap:2px;flex-shrink:0;">${makeSpaceStar(s.score)}</div>
+      <div style="flex:1;background:var(--gray2);border-radius:6px;height:8px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:6px;"></div>
+      </div>
+      <div style="font-size:22px;font-weight:900;color:${color};letter-spacing:-1px;width:40px;text-align:right;flex-shrink:0;">${s.score}</div>
+      <div style="font-size:11px;color:var(--text3);flex-shrink:0;">/ 5.0</div>
+    </div>`;
+  }).join('');
+}
+renderSpaceRatings();
+
+
+// ===== 이용자 의견 =====
+const OPINIONS = [
+  { score: 5, type: '숙소', org: 'NAVER · 서비스개발팀', date: '2025-04-18',
+    text: '객실이 전반적으로 깔끔하고 침구류가 특히 좋았습니다. 조용한 환경 덕분에 집중 워크숍 진행이 수월했어요.' },
+  { score: 5, type: '안내 및 서비스', org: 'NAVER · 플랫폼팀', date: '2025-04-15',
+    text: '프론트 스태프분들이 매우 친절했고 체크인 과정이 빠르고 효율적이었습니다. 다음에도 꼭 이용하고 싶습니다.' },
+  { score: 5, type: '미팅룸', org: 'NAVER계열 · 웹툰', date: '2025-04-10',
+    text: '대형 미팅룸 AV 장비 상태가 완벽했습니다. 화상회의 연결도 원활해서 외부 참석자와의 연결에 전혀 문제 없었어요.' },
+  { score: 4, type: '숙소', org: 'LINE계열 · 기획팀', date: '2025-04-08',
+    text: '전반적으로 만족스러웠으나 샤워실 온수 조절이 조금 불편했습니다. 나머지는 모두 훌륭했어요.' },
+  { score: 5, type: '산책로, 동물농장', org: 'NAVER · HR팀', date: '2025-04-05',
+    text: '점심 이후 산책로에서 산책한 시간이 팀 분위기를 환기시키는 데 정말 큰 도움이 됐습니다. 동물농장도 인기 만점이었어요.' },
+  { score: 4, type: '체육시설', org: 'NAVER계열 · 커머스', date: '2025-03-29',
+    text: '헬스장 기구들은 잘 관리되어 있었는데, 이용 시간대가 겹쳐 대기가 발생했습니다. 예약제 도입을 제안합니다.' },
+  { score: 5, type: '안내 및 서비스', org: 'NAVER · 검색팀', date: '2025-03-22',
+    text: '늦은 시간 요청드린 추가 비품을 신속하게 제공해 주셔서 감사했습니다. 세심한 배려가 인상적이었어요.' },
+  { score: 3, type: '숙소', org: 'NAVER계열 · 파이낸셜', date: '2025-03-18',
+    text: '2층 객실 방음이 다소 아쉬웠습니다. 복도 소음이 새벽에 들려서 수면에 지장이 있었어요. 개선되면 좋겠습니다.' },
+  { score: 5, type: '미팅룸', org: 'LINE계열 · 개발1팀', date: '2025-03-14',
+    text: '소형 미팅룸을 연속으로 3개 사용했는데 화이트보드, 마커 등 소모품이 항상 채워져 있어서 진행이 원활했습니다.' },
+  { score: 5, type: '숙소', org: 'NAVER · AI Lab', date: '2025-03-10',
+    text: '3층 객실 전망이 매우 좋았습니다. 연수 기간 내내 쾌적한 환경에서 지낼 수 있었고 식사도 맛있었어요.' },
+  { score: 4, type: '안내 및 서비스', org: 'NAVER계열 · 클라우드', date: '2025-02-27',
+    text: '전반적으로 서비스가 만족스러웠습니다. 안내 표지판이 조금 더 명확하면 처음 방문하는 분들도 쉽게 찾을 수 있을 것 같아요.' },
+  { score: 5, type: '체육시설', org: 'NAVER · 글로벌사업팀', date: '2025-02-20',
+    text: '수영장 시설이 생각보다 훨씬 잘 갖춰져 있어서 놀랐습니다. 워크숍 중간에 이용할 수 있어서 리프레시하기 좋았어요.' },
+  { score: 5, type: '식당', org: 'NAVER · 연수참가자', date: '2025-04-22',
+    text: '식당 밥이 너무 맛있었어요. 또 먹고 싶어요.' },
+  { score: 4, type: '동물농장', org: 'NAVER · 연수참가자', date: '2025-04-22',
+    text: '강아지들이 너무 귀엽습니다. 비가 와서 산책을 못한 게 아쉬웠어요.' },
+];
+
+const scoreColors = { 5: '#03C75A', 4: '#4e7fff', 3: '#f59e0b', 2: '#ff6b35', 1: '#ef4444' };
+const typeBadgeColors = {
+  '숙소':           '#eef3ff:#4e7fff',
+  '미팅룸':         '#edfff4:#03C75A',
+  '안내 및 서비스': '#fff8e6:#c47a00',
+  '체육시설':       '#fdf4ff:#9333ea',
+  '산책로, 동물농장':'#f0fdf4:#16a34a',
+  '식당':           '#fff1f0:#e03e2d',
+  '동물농장':       '#f0fdf4:#16a34a',
+};
+
+function renderOpinions() {
+  const el = document.getElementById('opinionList');
+  if (!el) return;
+  el.innerHTML = OPINIONS.map(op => {
+    const [bg, fg] = (typeBadgeColors[op.type] || '#f1f5f9:#64748b').split(':');
+    return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--white);transition:box-shadow .15s;"
+         onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.07)'" onmouseout="this.style.boxShadow='none'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:${bg};color:${fg};border-radius:4px;font-size:10px;font-weight:700;">${op.type}</span>
+        <span style="font-size:11px;color:var(--text3);margin-left:auto;">${op.org}</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${op.date}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.65;">"${op.text}"</div>
+    </div>`;
+  }).join('');
+}
+renderOpinions();
+
+
+// ===== 업로드 / 다운로드 =====
+let parsedWorkbook = null;
+let parsedData = null;
+
+function openUpload() {
+  document.getElementById('uploadArea').classList.add('open');
+}
+function closeUpload() {
+  document.getElementById('uploadArea').classList.remove('open');
+  resetUploadUI();
+}
+function resetUploadUI() {
+  parsedWorkbook = null; parsedData = null;
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('sheetSelectWrap').style.display = 'none';
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  document.getElementById('uploadConfirmBtn').disabled = true;
+  document.getElementById('uploadConfirmBtn').style.opacity = '.4';
+  document.getElementById('fileInput').value = '';
 }
 
-function renderFinanceTable() {
-  const q = (document.getElementById('financeSearch')?.value || '').toLowerCase();
-  const tf = document.getElementById('financeTypeFilter')?.value || '';
-  const cf = document.getElementById('financeCatFilter')?.value || '';
-  const filtered = financeData.filter(f =>
-    (!q || f.name.toLowerCase().includes(q)) &&
-    (!tf || f.type === tf) &&
-    (!cf || f.cat === cf)
-  ).sort((a, b) => b.date.localeCompare(a.date));
-  document.getElementById('financeCount').textContent = filtered.length + '건';
-  const tbody = document.getElementById('financeTableBody');
-  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">내역이 없습니다</div></div></td></tr>`; return; }
-  const catBadge = { '객실': 'badge-blue', '교육': 'badge-purple', '식음료': 'badge-amber', '인건비': 'badge-red', '시설': 'badge-gray', '기타': 'badge-gray' };
-  tbody.innerHTML = filtered.map(f => `
-    <tr>
-      <td class="mono">${f.date}</td>
-      <td><span class="badge ${f.type === '수입' ? 'badge-green' : 'badge-red'}">${f.type}</span></td>
-      <td><span class="badge ${catBadge[f.cat] || 'badge-gray'}">${f.cat}</span></td>
-      <td>${f.name}</td>
-      <td><strong class="mono" style="color:${f.type === '수입' ? 'var(--green)' : 'var(--red)'}">${f.type === '수입' ? '+' : '-'}${(+f.amount).toLocaleString()}</strong></td>
-      <td style="font-size:12px">${f.manager}</td>
-      <td style="color:var(--text-muted);font-size:12px">${f.memo || '-'}</td>
-      <td><div class="actions">
-        <button class="btn-icon" onclick="editFinance(${f.id})">✏️</button>
-        <button class="btn-icon danger" onclick="deleteItem('finance', ${f.id})">🗑️</button>
-      </div></td>
-    </tr>`).join('');
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadDrop').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('uploadDrop').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
 }
 
-// ================= MODAL HELPERS =================
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId = null; }
+function handleFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.xlsx?$/i)) { showToast('xlsx 또는 xls 파일만 업로드 가능합니다', 'warn'); return; }
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  // 미리보기
+  document.getElementById('previewName').textContent = file.name;
+  document.getElementById('previewSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('uploadPreview').style.display = 'block';
+
+  // SheetJS로 파싱
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      parsedWorkbook = XLSX.read(e.target.result, { type: 'array' });
+      const sheets = parsedWorkbook.SheetNames;
+
+      // 시트 선택 셀렉트 채우기
+      const sel = document.getElementById('sheetSelect');
+      sel.innerHTML = sheets.map(s => `<option value="${s}">${s}</option>`).join('');
+      document.getElementById('sheetSelectWrap').style.display = 'block';
+
+      // 첫 시트 미리 파싱
+      parseSheet(sheets[0]);
+
+      const btn = document.getElementById('uploadConfirmBtn');
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+      showToast('파일 로드 완료 — 시트를 확인하고 적용해주세요', 'success');
+    } catch(err) {
+      showToast('파일 파싱 오류: ' + err.message, 'warn');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('sheetSelect')?.addEventListener('change', function() {
+  parseSheet(this.value);
 });
 
-// ================= ADD/EDIT MODAL =================
-function openAddModal() {
-  editingId = null;
-  if (currentPage === 'room') { openRoomModal(); }
-  else if (currentPage === 'program') { openProgramModal(); }
-  else { openFinanceModal(); }
+function parseSheet(sheetName) {
+  const ws = parsedWorkbook.Sheets[sheetName];
+  parsedData = XLSX.utils.sheet_to_json(ws, { defval: '' });
 }
 
-// Room Modal
-function openRoomModal(data = null) {
-  document.getElementById('roomModalTitle').textContent = data ? '객실 수정' : '객실 추가';
-  document.getElementById('r_num').value = data?.num || '';
-  document.getElementById('r_type').value = data?.type || '1인실';
-  document.getElementById('r_status').value = data?.status || '공실';
-  document.getElementById('r_guest').value = data?.guest || '';
-  document.getElementById('r_org').value = data?.org || '';
-  document.getElementById('r_checkin').value = data?.checkin || '';
-  document.getElementById('r_checkout').value = data?.checkout || '';
-  document.getElementById('r_note').value = data?.note || '';
-  openModal('roomModal');
-}
-
-function editRoom(id) { editingId = id; openRoomModal(roomData.find(r => r.id === id)); }
-
-function saveRoom() {
-  const num = document.getElementById('r_num').value.trim();
-  if (!num) { showToast('객실번호를 입력해주세요', 'error'); return; }
-  const obj = {
-    num, type: document.getElementById('r_type').value,
-    status: document.getElementById('r_status').value,
-    guest: document.getElementById('r_guest').value,
-    org: document.getElementById('r_org').value,
-    checkin: document.getElementById('r_checkin').value,
-    checkout: document.getElementById('r_checkout').value,
-    note: document.getElementById('r_note').value,
-  };
-  if (editingId) {
-    const idx = roomData.findIndex(r => r.id === editingId);
-    roomData[idx] = { ...roomData[idx], ...obj };
-    showToast('객실 정보가 수정됐습니다', 'success');
-  } else {
-    roomData.push({ id: nextId.room++, ...obj });
-    showToast('객실이 추가됐습니다', 'success');
+function confirmUpload() {
+  if (!parsedData || parsedData.length === 0) { showToast('데이터가 없습니다', 'warn'); return; }
+  try {
+    applyUploadedData(parsedData);
+    closeUpload();
+    showToast('데이터가 성공적으로 적용됐습니다 ✓', 'success');
+  } catch(err) {
+    showToast('데이터 적용 오류: ' + err.message, 'warn');
   }
-  closeModal('roomModal');
-  renderRoomStats(); renderRoomTable();
 }
 
-// Program Modal
-function openProgramModal(data = null) {
-  document.getElementById('programModalTitle').textContent = data ? '프로그램 수정' : '프로그램 추가';
-  document.getElementById('p_name').value = data?.name || '';
-  document.getElementById('p_target').value = data?.target || '';
-  document.getElementById('p_manager').value = data?.manager || '';
-  document.getElementById('p_start').value = data?.start || '';
-  document.getElementById('p_end').value = data?.end || '';
-  document.getElementById('p_applied').value = data?.applied || '';
-  document.getElementById('p_cap').value = data?.cap || '';
-  document.getElementById('p_venue').value = data?.venue || '';
-  document.getElementById('p_status').value = data?.status || '예정';
-  openModal('programModal');
-}
+function applyUploadedData(rows) {
+  // 월별 데이터 매핑 (헤더: 월, 워크샵건수, 누적인원, 방문인원, 운영일수)
+  const monthMap = {'1월':0,'2월':1,'3월':2,'4월':3,'5월':4,'6월':5,'7월':6,'8월':7,'9월':8,'10월':9,'11월':10,'12월':11};
 
-function editProgram(id) { editingId = id; openProgramModal(programData.find(p => p.id === id)); }
+  const newWorkshop = new Array(12).fill(null);
+  const newPerson   = new Array(12).fill(null);
+  const newOpDays   = new Array(12).fill(null);
 
-function saveProgram() {
-  const name = document.getElementById('p_name').value.trim();
-  if (!name) { showToast('프로그램명을 입력해주세요', 'error'); return; }
-  const obj = {
-    name, target: document.getElementById('p_target').value,
-    manager: document.getElementById('p_manager').value,
-    start: document.getElementById('p_start').value,
-    end: document.getElementById('p_end').value,
-    applied: +document.getElementById('p_applied').value || 0,
-    cap: +document.getElementById('p_cap').value || 0,
-    venue: document.getElementById('p_venue').value,
-    status: document.getElementById('p_status').value,
-  };
-  if (editingId) {
-    const idx = programData.findIndex(p => p.id === editingId);
-    programData[idx] = { ...programData[idx], ...obj };
-    showToast('프로그램이 수정됐습니다', 'success');
-  } else {
-    programData.push({ id: nextId.program++, ...obj });
-    showToast('프로그램이 추가됐습니다', 'success');
+  rows.forEach(row => {
+    const m = String(row['월'] || '').trim();
+    const idx = monthMap[m];
+    if (idx === undefined) return;
+    const ws  = Number(row['워크샵건수'] || row['워크샵'] || 0);
+    const ppl = Number(row['누적인원'] || 0);
+    const ops = Number(row['운영일수'] || 0);
+    if (ws)  newWorkshop[idx] = ws;
+    if (ppl) newPerson[idx]   = ppl;
+    if (ops) newOpDays[idx]   = ops;
+  });
+
+  // 유효한 마지막 달 기준으로 KPI 업데이트
+  const lastWs  = newWorkshop.filter(v=>v!==null);
+  const lastPpl = newPerson.filter(v=>v!==null);
+  const lastOps = newOpDays.filter(v=>v!==null);
+
+  if (lastWs.length)  document.querySelector('.kpi-val.blue, #kpiWorkshop, .kpi-card:nth-child(1) .kpi-val')?.closest('.kpi-card')?.querySelector('.kpi-val')
+    ? (document.querySelectorAll('.kpi-card')[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString()) : null;
+
+  // yearChart 업데이트
+  if (window._yearChart) {
+    window._yearChart.data.datasets[0].data = newPerson;
+    window._yearChart.data.datasets[1].data = newOpDays;
+    window._yearChart.data.datasets[2].data = newWorkshop;
+    window._yearChart.update();
   }
-  closeModal('programModal');
-  renderProgramStats(); renderProgramTable();
+
+  // KPI 숫자 직접 업데이트
+  const kpiCards = document.querySelectorAll('.kpi-card');
+  if (lastWs.length && kpiCards[0])
+    kpiCards[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString();
+  if (lastPpl.length && kpiCards[1])
+    kpiCards[1].querySelector('.kpi-val').textContent = lastPpl.reduce((a,b)=>a+b,0).toLocaleString();
+  if (lastOps.length && kpiCards[2])
+    kpiCards[2].querySelector('.kpi-val').textContent = Math.max(...lastOps.filter(v=>v));
 }
 
-// Finance Modal
-function openFinanceModal(data = null) {
-  document.getElementById('financeModalTitle').textContent = data ? '내역 수정' : '수입/지출 추가';
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('f_date').value = data?.date || today;
-  document.getElementById('f_type').value = data?.type || '수입';
-  document.getElementById('f_cat').value = data?.cat || '객실';
-  document.getElementById('f_name').value = data?.name || '';
-  document.getElementById('f_amount').value = data?.amount || '';
-  document.getElementById('f_manager').value = data?.manager || '';
-  document.getElementById('f_memo').value = data?.memo || '';
-  openModal('financeModal');
-}
-
-function editFinance(id) { editingId = id; openFinanceModal(financeData.find(f => f.id === id)); }
-
-function saveFinance() {
-  const name = document.getElementById('f_name').value.trim();
-  const amount = +document.getElementById('f_amount').value;
-  if (!name || !amount) { showToast('항목명과 금액을 입력해주세요', 'error'); return; }
-  const obj = {
-    date: document.getElementById('f_date').value,
-    type: document.getElementById('f_type').value,
-    cat: document.getElementById('f_cat').value,
-    name, amount,
-    manager: document.getElementById('f_manager').value,
-    memo: document.getElementById('f_memo').value,
-  };
-  if (editingId) {
-    const idx = financeData.findIndex(f => f.id === editingId);
-    financeData[idx] = { ...financeData[idx], ...obj };
-    showToast('내역이 수정됐습니다', 'success');
-  } else {
-    financeData.push({ id: nextId.finance++, ...obj });
-    showToast('내역이 추가됐습니다', 'success');
+// ===== 서식 다운로드 =====
+function downloadTemplate() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const sampleData = [
+    { '월':'1월','워크샵건수':74,'누적인원':2115,'방문인원':820,'운영일수':21,'NAVER':900,'NAVER계열':1050,'LINE계열':165,'1박2일':1620,'2박3일':320,'3박4일':110,'4박5일':65 },
+    { '월':'2월','워크샵건수':65,'누적인원':974,'방문인원':380,'운영일수':15,'NAVER':400,'NAVER계열':480,'LINE계열':94,'1박2일':750,'2박3일':150,'3박4일':44,'4박5일':30 },
+    { '월':'3월','워크샵건수':83,'누적인원':2336,'방문인원':910,'운영일수':21,'NAVER':990,'NAVER계열':1160,'LINE계열':186,'1박2일':1780,'2박3일':360,'3박4일':126,'4박5일':70 },
+    { '월':'4월','워크샵건수':124,'누적인원':2931,'방문인원':1345,'운영일수':22,'NAVER':1249,'NAVER계열':1473,'LINE계열':209,'1박2일':2294,'2박3일':384,'3박4일':68,'4박5일':165 },
+  ];
+  // 나머지 달은 빈 행
+  for (let i = 4; i < 12; i++) {
+    sampleData.push({ '월': months[i], '워크샵건수':'','누적인원':'','방문인원':'','운영일수':'','NAVER':'','NAVER계열':'','LINE계열':'','1박2일':'','2박3일':'','3박4일':'','4박5일':'' });
   }
-  closeModal('financeModal');
-  renderFinanceStats(); renderFinanceTable();
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(sampleData, {
+    header: ['월','워크샵건수','누적인원','방문인원','운영일수','NAVER','NAVER계열','LINE계열','1박2일','2박3일','3박4일','4박5일']
+  });
+
+  // 컬럼 너비
+  ws['!cols'] = [8,12,12,12,12,10,12,10,10,10,10,10].map(w=>({wch:w}));
+
+  XLSX.utils.book_append_sheet(wb, ws, '운영현황');
+  XLSX.writeFile(wb, 'NAVER_CONNECT_ONE_운영현황_서식.xlsx');
+  showToast('서식 파일을 다운로드했습니다', 'success');
 }
 
-// ================= DELETE =================
-function deleteItem(type, id) {
-  const names = { room: '객실', program: '프로그램', finance: '내역' };
-  document.getElementById('confirmDesc').textContent = `이 ${names[type]} 항목을 삭제합니다. 되돌릴 수 없습니다.`;
-  deleteCallback = () => {
-    if (type === 'room') { roomData = roomData.filter(r => r.id !== id); renderRoomStats(); renderRoomTable(); }
-    else if (type === 'program') { programData = programData.filter(p => p.id !== id); renderProgramStats(); renderProgramTable(); }
-    else { financeData = financeData.filter(f => f.id !== id); renderFinanceStats(); renderFinanceTable(); }
-    showToast('삭제됐습니다', 'info');
-    closeModal('confirmModal');
-  };
-  openModal('confirmModal');
-}
+// 업로드 오버레이 클릭 닫기
+document.getElementById('uploadArea').addEventListener('click', e => {
+  if (e.target.id === 'uploadArea') closeUpload();
+});
 
-function confirmDelete() { if (deleteCallback) deleteCallback(); }
+// yearChart 참조 저장 (업로드 시 업데이트용)
+document.addEventListener('DOMContentLoaded', () => {});
 
-// ================= CSV EXPORT =================
-function exportCSV() {
-  let rows, filename;
-  if (currentPage === 'room') {
-    filename = '객실현황_' + today() + '.csv';
-    rows = [['객실번호','유형','상태','예약자','단체/소속','입실일','퇴실일','비고'],
-      ...roomData.map(r => [r.num, r.type, r.status, r.guest, r.org, r.checkin, r.checkout, r.note])];
-  } else if (currentPage === 'program') {
-    filename = '교육프로그램_' + today() + '.csv';
-    rows = [['프로그램명','대상','시작일','종료일','신청','정원','담당자','장소','상태'],
-      ...programData.map(p => [p.name, p.target, p.start, p.end, p.applied, p.cap, p.manager, p.venue, p.status])];
-  } else {
-    filename = '수입지출_' + today() + '.csv';
-    rows = [['날짜','구분','카테고리','항목명','금액(만원)','담당자','메모'],
-      ...financeData.map(f => [f.date, f.type, f.cat, f.name, f.amount, f.manager, f.memo])];
+
+// ===== 연간 이용만족도 추이 차트 =====
+new Chart(document.getElementById('satTrendChart'), {
+  type: 'line',
+  data: {
+    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+    datasets: [
+      {
+        label: '100점 환산',
+        data: [94.2, 95.0, 95.8, 96.4, null, null, null, null, null, null, null, null],
+        borderColor: '#03C75A',
+        backgroundColor: 'rgba(3,199,90,0.08)',
+        fill: true, tension: 0.4, borderWidth: 2.5,
+        pointBackgroundColor: '#03C75A', pointRadius: 5, pointHoverRadius: 7,
+        yAxisID: 'y'
+      },
+      {
+        label: '응답인원',
+        data: [98, 112, 130, 137, null, null, null, null, null, null, null, null],
+        borderColor: '#4e7fff',
+        backgroundColor: 'transparent',
+        tension: 0.4, borderWidth: 1.5, borderDash: [4,3],
+        pointBackgroundColor: '#4e7fff', pointRadius: 3,
+        yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 0
+            ? ` 만족도: ${ctx.raw}점`
+            : ` 응답: ${ctx.raw}명`
+        }
+      }
+    },
+    scales: {
+      y: {
+        position: 'left', min: 85, max: 100,
+        grid: { color: '#eaebec' },
+        ticks: { callback: v => v + '점', font: { size: 10 } }
+      },
+      y2: {
+        position: 'right', min: 0,
+        grid: { display: false },
+        ticks: { callback: v => v + '명', font: { size: 10 } }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
   }
-  const bom = '\uFEFF';
-  const csv = bom + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  showToast('CSV 파일로 내보냈습니다 ✓', 'success');
+});
+
+
+// ===== 연/월별 데이터 DB =====
+const OPS_DB = {
+  2025: {
+    1:  { workshop:74,  person:2115, visitor:820,  opDays:21, naver:900,  naverK:1050, line:165, n1:1620, n2:320, n3:110, n4:65  },
+    2:  { workshop:65,  person:974,  visitor:380,  opDays:15, naver:400,  naverK:480,  line:94,  n1:750,  n2:150, n3:44,  n4:30  },
+    3:  { workshop:83,  person:2336, visitor:910,  opDays:21, naver:990,  naverK:1160, line:186, n1:1780, n2:360, n3:126, n4:70  },
+    4:  { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n1:2294, n2:384, n3:68,  n4:165 },
+    5:  null, 6:null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
+  },
+  2024: {
+    1:  { workshop:58,  person:1820, visitor:710,  opDays:18, naver:780,  naverK:900,  line:140, n1:1380, n2:280, n3:90,  n4:70  },
+    2:  { workshop:42,  person:860,  visitor:320,  opDays:12, naver:360,  naverK:400,  line:100, n1:660,  n2:130, n3:40,  n4:30  },
+    3:  { workshop:71,  person:2050, visitor:790,  opDays:19, naver:870,  naverK:1020, line:160, n1:1560, n2:310, n3:110, n4:70  },
+    4:  { workshop:98,  person:2540, visitor:1100, opDays:20, naver:1080, naverK:1280, line:180, n1:1980, n2:340, n3:120, n4:100 },
+    5:  { workshop:112, person:2780, visitor:1200, opDays:22, naver:1180, naverK:1400, line:200, n1:2100, n2:380, n3:180, n4:120 },
+    6:  { workshop:88,  person:2200, visitor:950,  opDays:20, naver:940,  naverK:1100, line:160, n1:1680, n2:320, n3:120, n4:80  },
+    7:  { workshop:62,  person:1560, visitor:640,  opDays:17, naver:660,  naverK:780,  line:120, n1:1200, n2:230, n3:80,  n4:50  },
+    8:  { workshop:55,  person:1380, visitor:560,  opDays:15, naver:580,  naverK:690,  line:110, n1:1060, n2:200, n3:70,  n4:50  },
+    9:  { workshop:76,  person:1900, visitor:780,  opDays:18, naver:800,  naverK:960,  line:140, n1:1460, n2:280, n3:100, n4:60  },
+    10: { workshop:91,  person:2280, visitor:980,  opDays:21, naver:960,  naverK:1140, line:180, n1:1740, n2:340, n3:120, n4:80  },
+    11: { workshop:84,  person:2100, visitor:900,  opDays:19, naver:880,  naverK:1060, line:160, n1:1600, n2:310, n3:110, n4:80  },
+    12: { workshop:70,  person:1760, visitor:720,  opDays:16, naver:740,  naverK:880,  line:140, n1:1340, n2:260, n3:90,  n4:70  },
+  },
+  2023: {
+    1:{ workshop:48, person:1540, visitor:600, opDays:16, naver:650, naverK:760, line:130, n1:1180, n2:220, n3:80, n4:60 },
+    2:{ workshop:35, person:720,  visitor:280, opDays:10, naver:300, naverK:340, line:80,  n1:560,  n2:110, n3:30, n4:20 },
+    3:{ workshop:60, person:1760, visitor:680, opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:90, n4:60 },
+    4:{ workshop:82, person:2140, visitor:920, opDays:19, naver:900, naverK:1080, line:160, n1:1640, n2:300, n3:130, n4:70 },
+    5:{ workshop:95, person:2380, visitor:1020,opDays:21, naver:1000,naverK:1200,line:180, n1:1820, n2:340, n3:140, n4:80 },
+    6:{ workshop:78, person:1960, visitor:840, opDays:18, naver:820, naverK:980, line:160, n1:1500, n2:290, n3:110, n4:60 },
+    7:{ workshop:52, person:1320, visitor:540, opDays:14, naver:560, naverK:660, line:100, n1:1020, n2:190, n3:70, n4:40 },
+    8:{ workshop:45, person:1140, visitor:460, opDays:12, naver:480, naverK:560, line:100, n1:880,  n2:160, n3:60, n4:40 },
+    9:{ workshop:65, person:1640, visitor:670, opDays:16, naver:690, naverK:820, line:130, n1:1260, n2:240, n3:90, n4:50 },
+    10:{ workshop:79, person:1980, visitor:850,opDays:19, naver:840, naverK:1000,line:140, n1:1520, n2:290, n3:110, n4:60 },
+    11:{ workshop:70, person:1760, visitor:750,opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:100, n4:50 },
+    12:{ workshop:58, person:1460, visitor:600,opDays:14, naver:620, naverK:720, line:120, n1:1120, n2:210, n3:80, n4:50 },
+  }
+};
+
+// 5년 평균 (기준값 고정)
+const AVG_5Y = { workshop: 17, person: 671, opDays: 14 };
+
+function getFilteredData(year, month) {
+  const yearData = OPS_DB[year] || {};
+  if (month === 'all') {
+    // 연간 합산
+    const months = Object.values(yearData).filter(Boolean);
+    if (!months.length) return null;
+    return months.reduce((acc, m) => ({
+      workshop: acc.workshop + m.workshop,
+      person:   acc.person   + m.person,
+      visitor:  acc.visitor  + m.visitor,
+      opDays:   Math.max(acc.opDays, m.opDays),
+      naver:    acc.naver    + m.naver,
+      naverK:   acc.naverK   + m.naverK,
+      line:     acc.line     + m.line,
+      n1: acc.n1+m.n1, n2:acc.n2+m.n2, n3:acc.n3+m.n3, n4:acc.n4+m.n4,
+    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n1:0,n2:0,n3:0,n4:0 });
+  }
+  return yearData[parseInt(month)] || null;
 }
 
-function today() {
-  return new Date().toISOString().split('T')[0].replace(/-/g,'');
+function onPeriodChange() {
+  const year  = parseInt(document.getElementById('filterYear').value);
+  const month = document.getElementById('filterMonth').value;
+  applyPeriodFilter(year, month);
 }
 
-// ================= TOAST =================
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toastContainer');
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)'; toast.style.transition = '0.3s'; setTimeout(() => toast.remove(), 300); }, 2500);
+function applyPeriodFilter(year, month) {
+  const data = getFilteredData(year, month);
+  const label = month === 'all' ? `${year}년 전체` : `${year}년 ${month}월`;
+
+  // 기간 라벨 업데이트
+  const pl = document.getElementById('sectionPeriodLabel');
+  if (pl) pl.textContent = label;
+
+  if (!data) {
+    showToast(`${label} 데이터가 없습니다`, 'warn');
+    return;
+  }
+
+  // ── KPI 업데이트 ──
+  document.getElementById('kpiWorkshop').textContent = data.workshop.toLocaleString();
+  document.getElementById('kpiPerson').textContent   = data.person.toLocaleString();
+  document.getElementById('kpiVisitor').textContent  = data.visitor.toLocaleString();
+  document.getElementById('kpiOpDays').textContent   = data.opDays.toLocaleString();
+
+  // ── 법인별 도넛 ──
+  if (window._corpChart) {
+    window._corpChart.data.datasets[0].data = [data.naver, data.naverK, data.line];
+    window._corpChart.options.plugins.tooltip = {
+      callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}명` }
+    };
+    window._corpChart.update();
+    // 도넛 중앙 숫자
+    const total = data.naver + data.naverK + data.line;
+    const center = document.querySelector('#corpChart').parentElement.querySelector('.donut-center-val');
+    if (center) center.textContent = total.toLocaleString();
+  }
+
+  // ── 이용일수별 도넛 ──
+  if (window._nightChart) {
+    window._nightChart.data.datasets[0].data = [data.n1, data.n2, data.n3, data.n4];
+    window._nightChart.update();
+    const center2 = document.querySelector('#nightChart').parentElement.querySelector('.donut-center-val');
+    if (center2) center2.textContent = (data.n1+data.n2+data.n3+data.n4).toLocaleString();
+  }
+
+  // ── 년간 차트: 월 선택 시 해당 월 하이라이트 ──
+  if (window._yearChart) {
+    const yearData = OPS_DB[year] || {};
+    const months = Array.from({length:12}, (_,i) => yearData[i+1]);
+    window._yearChart.data.datasets[0].data = months.map(m => m ? m.person   : null);
+    window._yearChart.data.datasets[1].data = months.map(m => m ? m.opDays   : null);
+    window._yearChart.data.datasets[2].data = months.map(m => m ? m.workshop : null);
+
+    // 선택 월 포인트 강조
+    if (month !== 'all') {
+      const mi = parseInt(month) - 1;
+      window._yearChart.data.datasets[0].pointRadius = months.map((_,i) => i===mi ? 8 : 4);
+      window._yearChart.data.datasets[0].pointBackgroundColor = months.map((_,i) => i===mi ? '#f59e0b' : '#1D1D1B');
+    } else {
+      window._yearChart.data.datasets[0].pointRadius = 4;
+      window._yearChart.data.datasets[0].pointBackgroundColor = '#1D1D1B';
+    }
+    window._yearChart.update();
+  }
+
+  showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
 }
 
-// ================= INIT =================
-renderAll();
+// 차트 인스턴스 저장
+
 </script>
 </body>
 </html>
