@@ -554,7 +554,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <option value="all">전체</option>
         <option value="1">1월</option><option value="2">2월</option>
         <option value="3">3월</option><option value="4">4월</option>
-        <option value="5" selected>5월</option><option value="6">6월</option>
+        <option value="5">5월</option><option value="6" selected>6월</option>
         <option value="7">7월</option><option value="8">8월</option>
         <option value="9">9월</option><option value="10">10월</option>
         <option value="11">11월</option><option value="12">12월</option>
@@ -573,7 +573,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="data-stamp fresh" id="dataStamp" title="가장 최근 데이터가 반영된 시각">
       <span class="data-stamp-dot"></span>
       <span class="data-stamp-label">데이터 기준</span>
-      <span class="data-stamp-time" id="dataStampTime">2026년 5월 (엑셀 반영)</span>
+      <span class="data-stamp-time" id="dataStampTime">2026년 6월 (엑셀 반영)</span>
     </div>
     <span class="data-stamp-hint">엑셀 업로드 시 자동 갱신됩니다</span>
   </div>
@@ -627,9 +627,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         </div>
       </div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,119명</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,020명</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 94명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열</div>
       </div>
     </div>
     <div class="card">
@@ -643,9 +643,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         </div>
       </div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>워크숍 <span id="purposeLegendWorkshop">1,280</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>팀플레이 <span id="purposeLegendTeamplay">832</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>워케이션 <span id="purposeLegendWorkation">121</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>워크숍</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>팀플레이</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>워케이션</div>
       </div>
     </div>
     <div class="card">
@@ -659,11 +659,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         </div>
       </div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>당일 16</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 1,934</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 198</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 40</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일 45</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>당일</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일</div>
       </div>
     </div>
   </div>
@@ -1287,7 +1287,6 @@ function showPage(name, btn) {
   }
 }
 
-try {
 // ===== CHART DEFAULTS =====
 Chart.defaults.font.family = "'NanumSquare', sans-serif";
 Chart.defaults.font.size = 11;
@@ -1297,7 +1296,11 @@ const GREEN_PALETTE = ['#03C75A','#00983A','#3dbb70','#7dd4a4','#b6e8cc','#ddf4e
 
 // ===== DONUT HELPER =====
 function donut(id, data, labels, colors, cutout='65%') {
-  return new Chart(document.getElementById(id), {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+  return new Chart(el, {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
     options: {
@@ -1308,73 +1311,10 @@ function donut(id, data, labels, colors, cutout='65%') {
     }
   });
 }
-
-// ===== CHARTS: PAGE 1 =====
-window._corpChart = donut('corpChart', [1119, 1020, 94], ['NAVER','NAVER계열','LINE계열'], ['#4e7fff','#7ba7ff','#b8d0ff']);
-window._purposeChart = donut('purposeChart', [1280, 832, 121], ['워크숍','팀플레이','워케이션'], ['#03C75A','#4e7fff','#f59e0b']);
-window._nightChart = donut('nightChart', [16, 1934, 198, 40, 45], ['당일','1박2일','2박3일','3박4일','4박5일'], ['#03C75A','#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
-// 미팅룸/숙소는 도넛 대신 텍스트로 표시 (도넛 캔버스 없음)
-
-// 년간 운영현황
-window._yearChart = new Chart(document.getElementById('yearChart'), {
-  data: {
-    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-    datasets: [
-      {
-        type: 'bar', label: '전년 누적인원',
-        data: [1423,1650,1814,2620,2234,2331,2161,1839,3094,2005,2862,2270],
-        backgroundColor: '#e5e7eb', borderRadius: 4, yAxisID: 'y',
-        order: 2
-      },
-      {
-        type: 'bar', label: '누적인원',
-        data: [2115,974,2336,2931,2233,null,null,null,null,null,null,null],
-        backgroundColor: '#1D1D1B', borderRadius: 4, yAxisID: 'y',
-        order: 1
-      },
-      {
-        type: 'line', label: '운영일수',
-        data: [22,20,22,22,18,null,null,null,null,null,null,null],
-        borderColor: '#4e7fff', backgroundColor: 'transparent',
-        pointBackgroundColor: '#4e7fff', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5,
-        order: 0
-      },
-      {
-        type: 'line', label: '워크샵건수',
-        data: [74,65,83,124,104,null,null,null,null,null,null,null],
-        borderColor: '#c4c5c7', backgroundColor: 'transparent',
-        pointBackgroundColor: '#c4c5c7', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5,
-        order: 0
-      }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8 } } },
-    scales: {
-      y: { position: 'left', grid: { color: '#eaebec' }, ticks: { callback: v => v.toLocaleString() } },
-      y2: { position: 'right', grid: { display: false }, min: 0, max: 150 },
-      x: { grid: { display: false } }
-    }
-  }
-});
-
-// ===== CHARTS: PAGE 2 =====
-const darkBg = '#1e2535';
-
-new Chart(document.getElementById('respChart'), {
-  type: 'doughnut',
-  data: { datasets: [{ data: [437, 908], backgroundColor: ['#4e7fff','#2d3548'], borderColor: darkBg, borderWidth: 2 }] },
-  options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
-});
+// 차트 초기화는 OPS_DB 정의 이후 initMainCharts()에서 수행됨
+// (아래 placeholder: 실제 차트는 OPS_DB 로딩 후 동적 생성)
 
 
-
-
-
-
-} catch(e) { console.warn("차트 초기화 오류:", e); }
 
 // ===== ROOM DATA =====
 // 객실명 형식: 층수.호실번호 (예: 5.01, 4.09, 2.13)
@@ -1688,28 +1628,26 @@ renderSpaceRatings();
 
 // ===== 이용자 의견 =====
 const OPINIONS = [
-  { score: 5, type: '프로그램', org: 'NAVER Cloud · 신재호님', date: '2026-05-12',
-    text: '새로운 프로그램들이 지속적으로 생기면 좋을것 같습니다.' },
-  { score: 4, type: '숙소', org: 'NAVER · 고영인님', date: '2026-05-12',
-    text: '숙소 컨디션 개선, 춥고 건조 침구류도 아쉽, 식사도 특별함이 있으면 좋겠고.... 일단 바라는점만 썻지만 항상 감사하죠 ㅎ' },
-  { score: 5, type: '체육시설', org: 'NAVER I&S · 이진은님', date: '2026-05-12',
-    text: '커넥트원 최고!!  혹시 운동기구 추가 계획은 없습니까? 없어도 되긴 하지만 있으면 정말 좋겠습니다 ㅎㅎ' },
-  { score: 3, type: '숙소', org: 'NAVER · 심지원님', date: '2026-05-07',
-    text: '모든 수건에서 빨래 안 마른 냄새가 나서 불편했습니다 ㅠㅠ' },
-  { score: 4, type: '기타', org: 'NAVER Z · 강경원님', date: '2026-05-07',
-    text: '커넥트원에 비치되어있는 기구들(회의실 의자, 숙소 내 매트리스 등)을 쉽게 알고 구매할 수 있으면 좋겠어요' },
-  { score: 5, type: '산책로', org: '그린웹서비스 · 권민정님', date: '2026-05-13',
-    text: '산책로 예쁘게 가꿔 주셔서 감사합니다' },
-  { score: 4, type: '숙소', org: 'NAVER · 노두식님', date: '2026-05-13',
-    text: '블라인드가 완전히 암막기능을 하지 못하고 아침에 옆으로 빛이 들어옵니다. 암막커튼이 별도로 있으면 좋겠습니다.' },
-  { score: 5, type: '프로그램', org: 'LINE WORKS · 모리 디누카', date: '2026-05-13',
-    text: '매우 만족하고 있습니다. 외부 고객(예를 들어 일본 기업의 임원들을 데리고 가서, 세션과 숙박을 할 수 있는 프로그램이 있다면 비즈니스에도 연결될 것이라고 생각했습니다)' },
-  { score: 5, type: '길찾기', org: 'NAVER LABS · 정성용님', date: '2026-05-14',
-    text: '너무 만족스러운데, 한눈에 볼 수 있는 전체 map이 있었으면 좋겠어요.' },
-  { score: 4, type: '기타', org: 'NAVER Z · 오명운님', date: '2026-05-20',
-    text: '방 키가 지금처럼 큰 카드보다는 작은 손목 팔찌 같은 형태라면 더 사용하기 쉽고 분실 위험도 줄어들 것 같습니다.' },
-  { score: 5, type: '기타', org: 'NAVER LABS · 이승수님', date: '2026-05-21',
-    text: '모든 사소한 부분이 방문자에게 배려가 되어있다고 느껴져 좋습니다. (헬스장에 옷, 신발이 준비되어있는 등)' },
+  { score: 3, type: '숙소', org: 'NAVER Z · 손혜림님', date: '2026-06-02',
+    text: '공조시스템 소음 때문에 잠을 잘 못잤어요..' },
+  { score: 4, type: '프로그램', org: 'NAVER Z · 윤호성님', date: '2026-06-05',
+    text: '커넥트원과 같이 워크샵으로 가서도 팀워크를 다질 수 있는 프로그램이 다양했으면 좋겠습니다. 인바디 기계가 있었던 것 같았는데.. 없어졌습니다.ㅠㅠ' },
+  { score: 5, type: '기타', org: 'NAVER · 김형선님', date: '2026-06-09',
+    text: '1784 화장실처럼 변기 세정 스프레이가 설치되어 있으면 좋을 것 같습니다!' },
+  { score: 3, type: '숙소', org: 'NAVER CLOUD · 김보라님', date: '2026-06-12',
+    text: '약간 하수구 냄새가 났습니다.' },
+  { score: 3, type: '숙소', org: 'NAVER FINANCIAL · 이초록님', date: '2026-06-12',
+    text: '숙소는 좋았는데, 온도가 아쉬웠습니다' },
+  { score: 3, type: '숙소', org: 'NAVER · 이소연님', date: '2026-06-12',
+    text: '조금 추웠습니다. 그리고 창 밖이 차도라 너무 시끄러워서 잠들기가 어려웠습니다ㅠㅠ' },
+  { score: 4, type: '체육시설', org: 'NAVER · 조지선님', date: '2026-06-18',
+    text: '그린팩토리의 운동시설까지는 아니어도, 운동기구가 좀 더 구비되어 있으면 좋을 듯 합니다.' },
+  { score: 5, type: '숙소', org: 'NAVER · 이승주님', date: '2026-06-19',
+    text: '가면 항상 기분이 리프레쉬되는 느낌이에요 감사합니다. 샤워기가 노후화된 것 같아 교체 검토되면 좋을 것 같습니다' },
+  { score: 3, type: '숙소', org: 'NAVER CLOUD · 김광림님', date: '2026-06-19',
+    text: '하수구 냄새 같은 것이 올라옵니다. 커넥트원에 꽤 많이 숙박했는데요, 이런 냄새가 난 것은 처음이네요.' },
+  { score: 4, type: '숙소', org: 'NAVER CLOUD · 윤현식님', date: '2026-06-24',
+    text: '온도는 괜찮았는데 좀 습했습니다.' },
 ];
 
 const scoreColors = { 5: '#03C75A', 4: '#4e7fff', 3: '#f59e0b', 2: '#ff6b35', 1: '#ef4444' };
@@ -2159,11 +2097,13 @@ function applyOpsSheet(rows) {
     }
     if (yearSel)  yearSel.value  = String(latest.year);
     if (monthSel) monthSel.value = String(latest.month);
+    initMainCharts(latest.year, String(latest.month));
     applyPeriodFilter(latest.year, String(latest.month), true);
   } else {
     // fallback: 현재 선택 유지
     const year  = parseInt(document.getElementById('filterYear').value);
     const month = document.getElementById('filterMonth').value;
+    initMainCharts(year, month);
     applyPeriodFilter(year, month, true);
   }
 }
@@ -2423,7 +2363,7 @@ function downloadTemplate() {
   // ══════════════════════════════════════════════
   // 시트 1: 운영현황 (KPI + 법인별 + 이용일수별 + 이용목적별)
   // ══════════════════════════════════════════════
-  // 2025년 1~12월 + 2026년 1~5월 실데이터 포함
+  // 2025년 1~12월 + 2026년 1~6월 실데이터 포함
   const OPS_SAMPLE = [
     // 2025
     [2025,'1월',  66, 1423, 683, 23, 719,  425,  279, 12, 1286, 18,  12,  95],
@@ -2443,7 +2383,8 @@ function downloadTemplate() {
     [2026,'2월',  65, 974,  435, 20, 320,  486,  168, 26, 688,  90,  20,  150],
     [2026,'3월',  83, 2336, 1125,22, 882,  1001, 453, 18, 2112, 42,  84,  80],
     [2026,'4월',  124,2931, 1345,22, 1249, 1473, 209, 20, 2294, 384, 68,  165],
-    [2026,'5월',  104,2233, 1068,18, 1119, 1020, 94,  16, 1934, 198, 40,  45],
+    [2026,'5월',  104,2233, 1068,21, 1119, 1020, 94,  16, 1934, 198, 40,  45],
+    [2026,'6월',  119,2959, 1472,22, 1391, 1391, 177, 46, 1832, 21,  20,  40],
   ];
   const opsData = OPS_SAMPLE.map(r => ({
     '연도':r[0],'월':r[1],'워크샵건수':r[2],'누적인원':r[3],'방문인원':r[4],'운영일수':r[5],
@@ -2453,8 +2394,8 @@ function downloadTemplate() {
     '워크숍':'','팀플레이':'','워케이션':'',
     '최근1년평균_워크샵':'','최근1년평균_인원':'','최근1년평균_운영일수':''
   }));
-  // 2026년 6~12월 빈 행
-  for (let i = 5; i < 12; i++) {
+  // 2026년 7~12월 빈 행
+  for (let i = 6; i < 12; i++) {
     opsData.push({ '연도':2026,'월':M[i],'워크샵건수':'','누적인원':'','방문인원':'','운영일수':'',
       'NAVER인원':'','NAVER계열인원':'','LINE계열인원':'',
       '당일':'','1박2일':'','2박3일':'','3박4일':'','4박5일':'',
@@ -2471,7 +2412,7 @@ function downloadTemplate() {
   XLSX.utils.book_append_sheet(wb, ws1, '01_운영현황');
 
   // ══════════════════════════════════════════════
-  // 시트 2: 미팅룸 이용현황 (2025.1 ~ 2026.4 실데이터)
+  // 시트 2: 미팅룸 이용현황 (2025.1 ~ 2026.6 실데이터)
   // ══════════════════════════════════════════════
   // [연도, 월, 누적이용실적, 사용가능미팅룸, 대형_이용, 대형_가능, 중형_이용, 중형_가능, 소형_이용, 소형_가능, 기타_이용, 기타_가능]
   const MEET_SAMPLE = [
@@ -2491,14 +2432,16 @@ function downloadTemplate() {
     [2026,'2월',  49, 460,  1, 40, 18, 120, 30, 300, 0, 0],
     [2026,'3월',  86, 506,  7, 44, 30, 132, 49, 330, 0, 0],
     [2026,'4월', 114, 506,  6, 44, 45, 132, 63, 330, 0, 0],
+    [2026,'5월', 105, 462,  7, 42, 37, 105, 61, 315, 0, 0],
+    [2026,'6월', 145, 484,  9, 44, 59, 110, 77, 330, 0, 0],
   ];
   const meetData = MEET_SAMPLE.map(r => ({
     '연도':r[0],'월':r[1],'누적이용실적':r[2],'사용가능미팅룸':r[3],
     '대형_이용':r[4],'대형_가능':r[5],'중형_이용':r[6],'중형_가능':r[7],
     '소형_이용':r[8],'소형_가능':r[9],'기타_이용':r[10],'기타_가능':r[11]
   }));
-  // 2026년 5~12월 빈 행 (입력 대기)
-  for (let i = 4; i < 12; i++) {
+  // 2026년 7~12월 빈 행 (입력 대기)
+  for (let i = 6; i < 12; i++) {
     meetData.push({ '연도':2026,'월':M[i],'누적이용실적':'','사용가능미팅룸':'',
       '대형_이용':'','대형_가능':'','중형_이용':'','중형_가능':'',
       '소형_이용':'','소형_가능':'','기타_이용':'','기타_가능':'' });
@@ -2509,7 +2452,7 @@ function downloadTemplate() {
   XLSX.utils.book_append_sheet(wb, ws2, '02_미팅룸이용현황');
 
   // ══════════════════════════════════════════════
-  // 시트 3: 숙소 이용현황 (층별) - 2025.1 ~ 2026.4 실데이터
+  // 시트 3: 숙소 이용현황 (층별) - 2025.1 ~ 2026.6 실데이터
   // ══════════════════════════════════════════════
   // [연도, 월, 누적, 가능, 5층이용, 5층가능, 4층이용, 4층가능, 3층이용, 3층가능, 2층이용, 2층가능, 1층이용, 1층가능, 0층이용, 0층가능]
   const ROOM_SAMPLE = [
@@ -2529,6 +2472,8 @@ function downloadTemplate() {
     [2026,'2월',  409, 2780, 0, 80, 101, 400, 125, 640, 121, 780,  49, 480,  13, 400],
     [2026,'3월', 1102, 3058, 0, 88, 167, 440, 242, 704, 358, 858, 177, 528, 158, 440],
     [2026,'4월', 1325, 3058, 0, 88, 221, 440, 274, 704, 435, 858, 230, 528, 165, 440],
+    [2026,'5월', 1039, 2919, 0, 84, 180, 420, 227, 672, 353, 819, 147, 504, 132, 420],
+    [2026,'6월', 1397, 3058, 0, 88, 221, 440, 246, 704, 467, 858, 292, 528, 171, 440],
   ];
   const roomData = ROOM_SAMPLE.map(r => ({
     '연도':r[0],'월':r[1],'누적이용실적':r[2],'배정가능숙소':r[3],
@@ -2536,8 +2481,8 @@ function downloadTemplate() {
     '3층_이용':r[8],'3층_가능':r[9],'2층_이용':r[10],'2층_가능':r[11],
     '1층_이용':r[12],'1층_가능':r[13],'0층_이용':r[14],'0층_가능':r[15]
   }));
-  // 2026년 5~12월 빈 행 (입력 대기)
-  for (let i = 4; i < 12; i++) {
+  // 2026년 7~12월 빈 행 (입력 대기)
+  for (let i = 6; i < 12; i++) {
     roomData.push({ '연도':2026,'월':M[i],'누적이용실적':'','배정가능숙소':'',
       '5층_이용':'','5층_가능':'','4층_이용':'','4층_가능':'',
       '3층_이용':'','3층_가능':'','2층_이용':'','2층_가능':'',
@@ -2580,7 +2525,7 @@ function downloadTemplate() {
   XLSX.utils.book_append_sheet(wb, ws4, '04_이용만족도');
 
   // ══════════════════════════════════════════════
-  // 시트 5: 이용자 주관식 의견 (2026년 5월 실데이터 11건)
+  // 시트 5: 이용자 주관식 의견 (2026년 5~6월 실데이터)
   // ══════════════════════════════════════════════
   const opinionData = [
     { '연도':2026,'월':'5월','날짜':'2026-05-12','공간유형':'프로그램','소속':'NAVER Cloud · 신재호님','의견내용':'새로운 프로그램들이 지속적으로 생기면 좋을것 같습니다.' },
@@ -2594,6 +2539,16 @@ function downloadTemplate() {
     { '연도':2026,'월':'5월','날짜':'2026-05-14','공간유형':'길찾기','소속':'NAVER LABS · 정성용님','의견내용':'너무 만족스러운데, 한눈에 볼 수 있는 전체 map이 있었으면 좋겠어요.' },
     { '연도':2026,'월':'5월','날짜':'2026-05-20','공간유형':'기타','소속':'NAVER Z · 오명운님','의견내용':'방 키가 지금처럼 큰 카드보다는 작은 손목 팔찌 같은 형태라면 더 사용하기 쉽고 분실 위험도 줄어들 것 같습니다.' },
     { '연도':2026,'월':'5월','날짜':'2026-05-21','공간유형':'기타','소속':'NAVER LABS · 이승수님','의견내용':'모든 사소한 부분이 방문자에게 배려가 되어있다고 느껴져 좋습니다. (헬스장에 옷, 신발이 준비되어있는 등)' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-02','공간유형':'숙소','소속':'NAVER Z · 손혜림님','의견내용':'공조시스템 소음 때문에 잠을 잘 못잤어요..' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-05','공간유형':'프로그램','소속':'NAVER Z · 윤호성님','의견내용':'커넥트원고 같이 워크샵으로 가서도 팀워크를 다질수있는 프로그램이 다양했으면 좋겠습니다. 인바디 기계가 있었던거같았는데.. 없어졌습니다.ㅠㅠ' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-09','공간유형':'기타','소속':'NAVER · 김형선님','의견내용':'1784 화장실처럼 변기 세정 스프레이가 설치되어 있으면 좋을 것 같습니다!' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-12','공간유형':'숙소','소속':'NAVER CLOUD · 김보라님','의견내용':'약간 하수구 냄새가 났습니다.' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-12','공간유형':'숙소','소속':'NAVER FINANCIAL · 이초록님','의견내용':'숙소는 좋았는데, 온도가 아쉬웠습니다' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-12','공간유형':'숙소','소속':'NAVER · 이소연님','의견내용':'조금 추웠습니다. 그리고 창 밖이 차도라 너무 시끄러워서 잠들기가 어려웠습니다ㅠㅠ' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-18','공간유형':'체육시설','소속':'NAVER · 조지선님','의견내용':'그린팩토리의 운동시설까지는 아니어도, 운동기구가 좀더 구비되어 있으면 좋을듯 합니다.' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-19','공간유형':'숙소','소속':'NAVER · 이승주님','의견내용':'가면 항상 기분이 리프레쉬되는 느낌이에요 감사합니다. 샤워기가 노후화된 것 같아 교체 검토되면 좋을 것 같습니다' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-19','공간유형':'숙소','소속':'NAVER CLOUD · 김광림님','의견내용':'하수구 냄새 같은 것이 올라옵니다. 커넥트원에 꽤 많이 숙박했는데요, 이런 냄새가 난 것은 처음이네요.' },
+    { '연도':2026,'월':'6월','날짜':'2026-06-24','공간유형':'숙소','소속':'NAVER CLOUD · 윤현식님','의견내용':'온도는 괜찮았는데 좀 습했습니다.' },
     { '연도':'','월':'','날짜':'','공간유형':'','소속':'','의견내용':'← 아래 행부터 직접 입력해주세요' },
   ];
   const ws5 = makeSheet(opinionData,
@@ -2846,8 +2801,9 @@ const OPS_DB = {
     2: { workshop:65,  person:974,  visitor:435,  opDays:20, naver:320,  naverK:486,  line:168, n0:26, n1:688,  n2:90,  n3:20, n4:150, purposeWorkshop:657,  purposeTeamplay:210,  purposeWorkation:107 },
     3: { workshop:83,  person:2336, visitor:1125, opDays:22, naver:882,  naverK:1001, line:453, n0:18, n1:2112, n2:42,  n3:84, n4:80,  purposeWorkshop:1517, purposeTeamplay:695,  purposeWorkation:124 },
     4: { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n0:20, n1:2294, n2:384, n3:68, n4:165, purposeWorkshop:1306, purposeTeamplay:1471, purposeWorkation:154 },
-    5: { workshop:104, person:2233, visitor:1068, opDays:18, naver:1119, naverK:1020, line:94,  n0:16, n1:1934, n2:198, n3:40, n4:45,  purposeWorkshop:1280, purposeTeamplay:832,  purposeWorkation:121 },
-    6: null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
+    5: { workshop:104, person:2233, visitor:1068, opDays:21, naver:1119, naverK:1020, line:94,  n0:16, n1:1934, n2:198, n3:40, n4:45,  purposeWorkshop:1280, purposeTeamplay:832,  purposeWorkation:121 },
+    6: { workshop:119, person:2959, visitor:1472, opDays:22, naver:1391, naverK:1391, line:177, n0:46, n1:1832, n2:21,  n3:20, n4:40,  purposeWorkshop:1549, purposeTeamplay:1308, purposeWorkation:102 },
+    7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
   },
   2025: {
     1:  { workshop:66,  person:1423, visitor:683,  opDays:23, naver:719,  naverK:425,  line:279, n0:12, n1:1286, n2:18,  n3:12,  n4:95,  purposeWorkshop:882,  purposeTeamplay:429,  purposeWorkation:112 },
@@ -2935,6 +2891,10 @@ function applyPeriodFilter(year, month, silent) {
       { name:'LINE계열',  val:data.line   },
     ];
     updateDonutCenter('corp', corpItems);
+    // 범례 숫자 갱신
+    setText('corpLegendNaver',  (data.naver  ||0).toLocaleString());
+    setText('corpLegendNaverK', (data.naverK ||0).toLocaleString());
+    setText('corpLegendLine',   (data.line   ||0).toLocaleString());
   }
 
   // ── 이용 목적별 도넛 ──
@@ -2974,6 +2934,12 @@ function applyPeriodFilter(year, month, silent) {
       { name:'4박5일', val:data.n4   },
     ];
     updateDonutCenter('night', nightItems);
+    // 범례 숫자 갱신
+    setText('nightLegendN0', (data.n0||0).toLocaleString());
+    setText('nightLegendN1', (data.n1||0).toLocaleString());
+    setText('nightLegendN2', (data.n2||0).toLocaleString());
+    setText('nightLegendN3', (data.n3||0).toLocaleString());
+    setText('nightLegendN4', (data.n4||0).toLocaleString());
   }
 
   // ── 년간 차트: 월 선택 시 해당 월 하이라이트 ──
@@ -3002,6 +2968,78 @@ function applyPeriodFilter(year, month, silent) {
   }
 
   if (!silent) showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+}
+
+// ===== 메인 차트 초기화 (OPS_DB + getFilteredData 정의 후 호출) =====
+function initMainCharts(year, month) {
+  const data = getFilteredData(year, month) || {};
+  const yearData = OPS_DB[year] || {};
+  const prevData = OPS_DB[year - 1] || {};
+  const months12 = Array.from({length:12}, (_,i) => yearData[i+1]);
+  const prev12   = Array.from({length:12}, (_,i) => prevData[i+1]);
+
+  // ── 도넛: 법인별 ──
+  window._corpChart = donut('corpChart',
+    [data.naver||0, data.naverK||0, data.line||0],
+    ['NAVER','NAVER계열','LINE계열'],
+    ['#4e7fff','#7ba7ff','#b8d0ff']);
+
+  // ── 도넛: 이용 목적별 ──
+  window._purposeChart = donut('purposeChart',
+    [data.purposeWorkshop||0, data.purposeTeamplay||0, data.purposeWorkation||0],
+    ['워크숍','팀플레이','워케이션'],
+    ['#03C75A','#4e7fff','#f59e0b']);
+
+  // ── 도넛: 이용일수별 ──
+  window._nightChart = donut('nightChart',
+    [data.n0||0, data.n1||0, data.n2||0, data.n3||0, data.n4||0],
+    ['당일','1박2일','2박3일','3박4일','4박5일'],
+    ['#03C75A','#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
+
+  // ── 년간 운영현황 혼합 차트 ──
+  const existingYear = Chart.getChart('yearChart');
+  if (existingYear) existingYear.destroy();
+  window._yearChart = new Chart(document.getElementById('yearChart'), {
+    data: {
+      labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      datasets: [
+        { type:'bar', label:`${year-1}년 누적인원`,
+          data: prev12.map(m => m ? m.person : null),
+          backgroundColor:'#e5e7eb', borderRadius:4, yAxisID:'y', order:2 },
+        { type:'bar', label:`${year}년 누적인원`,
+          data: months12.map(m => m ? m.person : null),
+          backgroundColor: months12.map((_,i) => (month !== 'all' && i === parseInt(month)-1) ? '#03C75A' : '#1D1D1B'),
+          borderRadius:4, yAxisID:'y', order:1 },
+        { type:'line', label:'운영일수',
+          data: months12.map(m => m ? m.opDays : null),
+          borderColor:'#4e7fff', backgroundColor:'transparent',
+          pointBackgroundColor:'#4e7fff', borderWidth:2, tension:0, yAxisID:'y2', pointRadius:5, order:0 },
+        { type:'line', label:'워크샵건수',
+          data: months12.map(m => m ? m.workshop : null),
+          borderColor:'#c4c5c7', backgroundColor:'transparent',
+          pointBackgroundColor:'#c4c5c7', borderWidth:2, tension:0, yAxisID:'y2', pointRadius:5, order:0 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, boxHeight:8 }}},
+      scales:{
+        y:  { position:'left',  grid:{ color:'#eaebec' }, ticks:{ callback: v => v.toLocaleString() }},
+        y2: { position:'right', grid:{ display:false }, min:0, max:150 },
+        x:  { grid:{ display:false }}
+      }
+    }
+  });
+
+  // ── 응답률 도넛 (만족도 탭) ──
+  const existingResp = Chart.getChart('respChart');
+  if (existingResp) existingResp.destroy();
+  new Chart(document.getElementById('respChart'), {
+    type:'doughnut',
+    data:{ datasets:[{ data:[98, 245], backgroundColor:['#4e7fff','#2d3548'], borderColor:'#1e2535', borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{ display:false }}}
+  });
 }
 
 // ===== 도넛 중앙: 최대 비중 항목 + 총인원 표시 =====
@@ -3300,38 +3338,43 @@ function findLatestPeriod() {
 }
 
 // ===== 초기 로드 시 OPS_DB 기반으로 전체 sync =====
-// OPS_DB와 모든 함수가 정의된 이후 시점에서 1회 실행
-try {
-  // 1) 가장 최신 월 자동 탐지
-  const latest = findLatestPeriod();
-  const initYear  = latest ? latest.year  : parseInt(document.getElementById('filterYear').value);
-  const initMonth = latest ? String(latest.month) : document.getElementById('filterMonth').value;
+// setTimeout 0: 모든 스크립트 파싱 완료 후 실행 보장
+setTimeout(function initDashboard() {
+  try {
+    // 1) 가장 최신 월 자동 탐지
+    const latest = findLatestPeriod();
+    const initYear  = latest ? latest.year  : parseInt(document.getElementById('filterYear').value);
+    const initMonth = latest ? String(latest.month) : document.getElementById('filterMonth').value;
 
-  // 2) 셀렉터 값을 최신 월로 자동 설정
-  if (latest) {
-    const yearSel  = document.getElementById('filterYear');
-    const monthSel = document.getElementById('filterMonth');
-    // 연도 옵션에 없으면 추가
-    if (yearSel && !Array.from(yearSel.options).some(o => o.value == initYear)) {
-      const opt = document.createElement('option');
-      opt.value = initYear; opt.textContent = initYear + '년';
-      yearSel.insertBefore(opt, yearSel.firstChild);
+    // 2) 셀렉터 값을 최신 월로 자동 설정
+    if (latest) {
+      const yearSel  = document.getElementById('filterYear');
+      const monthSel = document.getElementById('filterMonth');
+      if (yearSel && !Array.from(yearSel.options).some(o => o.value == initYear)) {
+        const opt = document.createElement('option');
+        opt.value = initYear; opt.textContent = initYear + '년';
+        yearSel.insertBefore(opt, yearSel.firstChild);
+      }
+      if (yearSel)  yearSel.value  = String(initYear);
+      if (monthSel) monthSel.value = initMonth;
+      const stamp = document.getElementById('dataStampTime');
+      if (stamp) stamp.textContent = `${initYear}년 ${initMonth}월 (엑셀 반영)`;
     }
-    if (yearSel)  yearSel.value  = String(initYear);
-    if (monthSel) monthSel.value = initMonth;
 
-    // 데이터 스탬프도 최신 월로 갱신
-    const stamp = document.getElementById('dataStampTime');
-    if (stamp) stamp.textContent = `${initYear}년 ${initMonth}월 (엑셀 반영)`;
+    // 3) 차트 초기화 → KPI/텍스트 sync
+    initMainCharts(initYear, initMonth);
+    applyPeriodFilter(initYear, initMonth, true);
+    updateRecentYearAvg(initYear, initMonth);
+  } catch(e) {
+    console.error('Dashboard init error:', e);
+    // 화면에 오류 표시 (디버그용)
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#e03e2d;color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;z-index:9999;max-width:400px;word-break:break-all;';
+    dbg.textContent = '초기화 오류: ' + e.message;
+    document.body.appendChild(dbg);
+    setTimeout(() => dbg.remove(), 8000);
   }
-
-  // 3) 선택 기간으로 KPI/차트 sync (silent)
-  applyPeriodFilter(initYear, initMonth, true);
-  // 4) 최근 1년 평균 계산 (applyPeriodFilter 내부에서도 호출되지만 안전망)
-  updateRecentYearAvg(initYear, initMonth);
-} catch(e) {
-  console.warn('Initial sync skipped:', e);
-}
+}, 0);
 
 // ════════════════════════════════════════════════════════════
 // 자동 엑셀 fetch (사내 웹서버 배포 시)
